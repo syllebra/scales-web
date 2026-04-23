@@ -1,291 +1,775 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Show Me Scales</title>
     <style>
         /* --- Reset et base --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-        html, body {
-            width: 100%; height: 100%;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
             background-color: #1e1e1e;
             color: #f0f0f0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            touch-action: none; 
+            touch-action: none;
         }
 
         /* --- Avertissement Portrait --- */
         #orientation-warning {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; color: white; z-index: 9999;
-            align-items: center; justify-content: center; text-align: center;
-            font-size: 1.5rem; padding: 20px;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: white;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.5rem;
+            padding: 20px;
         }
+
         @media screen and (orientation: portrait) {
-            #orientation-warning { display: flex; }
-            #app { display: none !important; }
+            #orientation-warning {
+                display: flex;
+            }
+
+            #app {
+                display: none !important;
+            }
         }
 
         /* --- Layout Principal --- */
-        #app { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
 
         /* --- 1. En-tête --- */
         #top-bar {
-            height: 65px; background: #2a2a2a; border-bottom: 2px solid #444;
-            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+            height: 65px;
+            background: #2a2a2a;
+            border-bottom: 2px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
             flex-shrink: 0;
             transition: all 0.3s ease;
         }
-        
-        .header-section { display: flex; align-items: center; gap: 10px; width: 33%; }
-        .header-center { width: 34%; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .header-right { width: 33%; justify-content: flex-end; }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 33%;
+        }
+
+        .header-center {
+            width: 34%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-right {
+            width: 33%;
+            justify-content: flex-end;
+        }
 
         button {
-            background: #3a3a3a; border: 1px solid #555; color: white;
-            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;
+            background: #3a3a3a;
+            border: 1px solid #555;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
             transition: background 0.2s, color 0.2s;
         }
-        button:active { background: #555; }
-        button.active-toggle { background: #4da6ff; color: #000; border-color: #4da6ff; }
+
+        button:active {
+            background: #555;
+        }
+
+        button.active-toggle {
+            background: #4da6ff;
+            color: #000;
+            border-color: #4da6ff;
+        }
 
         /* --- Icon Buttons --- */
-        .icon-btn { 
-            display: flex; align-items: center; justify-content: center;
-            width: 36px; height: 36px; padding: 0;
-            background: transparent; border: 1px solid transparent; color: #aaa;
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #aaa;
             border-radius: 6px;
         }
-        .icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .icon-btn.active { color: #4da6ff; background: rgba(77, 166, 255, 0.1); }
-        .icon-btn.active-search { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
 
-        #scale-name { font-size: 1.2rem; color: #4da6ff; margin-bottom: 5px; white-space: nowrap; }
-        #formula-bar { display: flex; gap: 5px; font-size: 0.85rem; flex-wrap: wrap; justify-content: center; }
-        .interval-badge { background: #333; padding: 2px 6px; border-radius: 4px; border: 1px solid #555; transition: 0.1s; cursor: default; }
-        .interval-badge.root { background: #d9534f; color: white; border-color: #d9534f; border-radius: 6px; } /* Plus arrondi pour la fondamentale */
-        
-        #btn-key {
-            font-size: 1.5rem; background: #1a1a1a; border-color: #ffb84d; 
-            color: #ffb84d; min-width: 50px; text-align: center;
+        .icon-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .dropdown { position: relative; display: inline-block; }
+        .icon-btn.active {
+            color: #4da6ff;
+            background: rgba(77, 166, 255, 0.1);
+        }
+
+        .icon-btn.active-search {
+            color: #ff4d4d;
+            background: rgba(255, 77, 77, 0.1);
+        }
+
+        #scale-name-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        #scale-name {
+            font-size: 1.2rem;
+            color: #4da6ff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        #formula-bar {
+            display: flex;
+            gap: 5px;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .interval-badge {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            transition: 0.1s;
+            cursor: default;
+        }
+
+        .interval-badge.root {
+            background: #d9534f;
+            color: white;
+            border-color: #d9534f;
+            border-radius: 6px;
+        }
+
+        /* Plus arrondi pour la fondamentale */
+
+        #btn-key {
+            font-size: 1.5rem;
+            background: #1a1a1a;
+            border-color: #ffb84d;
+            color: #ffb84d;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
         .dropdown-content {
-            display: none; position: absolute; background-color: #2a2a2a; min-width: 210px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid #444; border-radius: 6px;
+            display: none;
+            position: absolute;
+            background-color: #2a2a2a;
+            min-width: 210px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            border: 1px solid #444;
+            border-radius: 6px;
             overflow: hidden;
         }
-        .dropdown-content a { 
-            color: #f0f0f0; padding: 12px 16px; text-decoration: none; 
-            display: flex; align-items: center; gap: 12px; cursor: pointer;
+
+        .dropdown-content a {
+            color: #f0f0f0;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
             transition: background 0.2s;
         }
-        .dropdown-content a:hover { background-color: #3a3a3a; }
-        .dropdown-content a svg { color: #aaa; flex-shrink: 0; }
-        .dropdown:hover .dropdown-content { display: block; }
 
-        #formula-bar.interactive .interval-badge { cursor: pointer; }
-        #formula-bar.interactive .interval-badge:hover { background: #555; }
-        #formula-bar.interactive .interval-badge.selected { background: #ff4d4d; color: white; border-color: #ff4d4d; }
-        #formula-bar.interactive .interval-badge.root.selected { background: #d9534f; }
+        .dropdown-content a:hover {
+            background-color: #3a3a3a;
+        }
+
+        .dropdown-content a svg {
+            color: #aaa;
+            flex-shrink: 0;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        #formula-bar.interactive .interval-badge {
+            cursor: pointer;
+        }
+
+        #formula-bar.interactive .interval-badge:hover {
+            background: #555;
+        }
+
+        #formula-bar.interactive .interval-badge.selected {
+            background: #ff4d4d;
+            color: white;
+            border-color: #ff4d4d;
+        }
+
+        #formula-bar.interactive .interval-badge.root.selected {
+            background: #d9534f;
+        }
 
         /* --- Structure Horizontale (Mobile Landscape Friendly) --- */
         #main-content {
-            display: flex; flex-direction: row; flex-grow: 1; overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            overflow: hidden;
         }
 
         /* --- 2. Zone Instrument(s) --- */
         #instruments-wrapper {
-            display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
         }
 
         .instrument-container {
-            flex: 1; position: relative; background: #111; overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            flex: 1;
+            position: relative;
+            background: #111;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
             border-bottom: 2px solid #000;
             display: flex;
         }
-        .instrument-container:last-child { border-bottom: none; }
-        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-        
-        .btn-tuning-presets {
-            position: absolute; top: 10px; left: 10px; z-index: 100;
-            background: rgba(40, 40, 40, 0.7); border: 1px solid transparent; color: #aaa;
-            width: 40px; height: 40px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; backdrop-filter: blur(4px);
+
+        .instrument-container:last-child {
+            border-bottom: none;
         }
-        .btn-tuning-presets:hover { color: #fff; background: rgba(60, 60, 60, 0.8); }
-        .btn-tuning-presets:active { background: #555; }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        .btn-tuning-presets {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background: rgba(40, 40, 40, 0.7);
+            border: 1px solid transparent;
+            color: #aaa;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-tuning-presets:hover {
+            color: #fff;
+            background: rgba(60, 60, 60, 0.8);
+        }
+
+        .btn-tuning-presets:active {
+            background: #555;
+        }
 
         .instrument-label {
-            position: absolute; top: 10px; right: 10px; z-index: 100;
-            background: rgba(0, 0, 0, 0.6); padding: 4px 8px; border-radius: 4px;
-            font-size: 0.8rem; color: #aaa; pointer-events: none; border: 1px solid #333;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #aaa;
+            pointer-events: none;
+            border: 1px solid #333;
         }
 
         .tuning-pegs {
-            position: absolute; left: 0; top: 0; width: 60px; height: 100%;
-            pointer-events: none; 
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 100%;
+            pointer-events: none;
         }
+
         .peg {
-            pointer-events: auto; position: absolute; left: 10px;
-            background: #222; border: 2px solid #555; color: #ccc;
-            width: 30px; height: 30px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; cursor: pointer; font-size: 0.8rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.1s;
+            pointer-events: auto;
+            position: absolute;
+            left: 10px;
+            background: #222;
+            border: 2px solid #555;
+            color: #ccc;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transition: all 0.1s;
         }
-        .peg:active { transform: scale(0.9); background: #444; }
-        .disabled-peg { 
-            background: transparent; border: none; box-shadow: none; 
-            pointer-events: none; color: #888; font-size: 0.9rem;
+
+        .peg:active {
+            transform: scale(0.9);
+            background: #444;
+        }
+
+        .disabled-peg {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            pointer-events: none;
+            color: #888;
+            font-size: 0.9rem;
         }
 
         .zoom-controls {
-            position: absolute; right: 10px; bottom: 10px;
-            display: flex; flex-direction: column; gap: 5px;
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
-        .zoom-controls button { width: 35px; height: 35px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; background: rgba(40, 40, 40, 0.7); border:none; color: #aaa;}
-        .zoom-controls button:hover { color: #fff; background: rgba(60, 60, 60, 0.8); }
+
+        .zoom-controls button {
+            width: 35px;
+            height: 35px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(40, 40, 40, 0.7);
+            border: none;
+            color: #aaa;
+        }
+
+        .zoom-controls button:hover {
+            color: #fff;
+            background: rgba(60, 60, 60, 0.8);
+        }
 
         /* --- 3. Dictionnaire (Onglets & Grille - A Droite) --- */
         #dictionary-zone {
-            width: 320px; background: #222; border-left: 2px solid #444;
-            display: flex; flex-direction: column; flex-shrink: 0;
+            width: 320px;
+            background: #222;
+            border-left: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
             transition: width 0.3s;
         }
-        
-        .tabs { display: flex; background: #1a1a1a; }
-        .tab {
-            flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: bold;
-            background: #222; color: #888; border-bottom: 2px solid transparent;
+
+        .tabs {
+            display: flex;
+            background: #1a1a1a;
         }
-        .tab.active { color: #4da6ff; border-bottom-color: #4da6ff; background: #2a2a2a; }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            background: #222;
+            color: #888;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: #4da6ff;
+            border-bottom-color: #4da6ff;
+            background: #2a2a2a;
+        }
 
         .grid-header {
-            padding: 8px 10px; background: #2a2a2a; display: flex; 
-            justify-content: space-between; align-items: center; font-size: 0.85rem;
-            border-bottom: 1px solid #333; gap: 5px;
+            padding: 8px 10px;
+            background: #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #333;
+            gap: 5px;
         }
 
         #dictionary-grid {
-            flex-grow: 1; overflow-y: auto; padding: 10px;
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 8px; align-content: start;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+            align-content: start;
         }
 
         .dict-item {
-            background: #333; padding: 10px; border-radius: 6px; font-size: 0.85rem;
-            cursor: pointer; border: 1px solid transparent; transition: all 0.1s;
-            display: flex; justify-content: space-between; align-items: center;
+            background: #333;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .dict-item:hover { background: #3a3a3a; }
-        .dict-item.active { border-color: #4da6ff; background: #1f3a52; color: #fff; }
-        .dict-item.active-chord { border-color: #ff4d4d; background: #4d1f1f; color: #fff; }
-        .dict-item-badge { font-size: 0.7rem; background: #555; padding: 2px 5px; border-radius: 3px; }
-        .dict-item.disabled { opacity: 0.3; pointer-events: none; background: #222; }
-        .chord-qualifier { font-size: 0.8rem; color: #ffb84d; font-weight: bold;}
-        
+
+        .dict-item:hover {
+            background: #3a3a3a;
+        }
+
+        .dict-item.active {
+            border-color: #4da6ff;
+            background: #1f3a52;
+            color: #fff;
+        }
+
+        .dict-item.active-chord {
+            border-color: #ff4d4d;
+            background: #4d1f1f;
+            color: #fff;
+        }
+
+        .dict-item-badge {
+            font-size: 0.7rem;
+            background: #555;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .dict-item.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            background: #222;
+        }
+
+        .chord-qualifier {
+            font-size: 0.8rem;
+            color: #ffb84d;
+            font-weight: bold;
+        }
+
         .dict-group-header {
-            grid-column: 1 / -1; font-weight: bold; color: #ffb84d; 
-            border-bottom: 1px solid #444; padding-bottom: 4px; margin-top: 8px;
+            grid-column: 1 / -1;
+            font-weight: bold;
+            color: #ffb84d;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+            margin-top: 8px;
         }
 
         /* --- Chord Builder (Recherche) --- */
         #chord-builder {
-            display: none; flex-direction: column; flex-grow: 1; padding: 10px; overflow-y: auto;
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
         }
+
         .cb-roots {
-            display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #444;
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
         }
+
         .cb-root-btn {
-            flex-shrink: 0; width: 45px; height: 45px; border-radius: 50%;
-            background: #333; color: white; border: 2px solid #555;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            flex-shrink: 0;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #333;
+            color: white;
+            border: 2px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .cb-root-btn.active { background: #ffb84d; color: #000; border-color: #ffb84d; }
-        
+
+        .cb-root-btn.active {
+            background: #ffb84d;
+            color: #000;
+            border-color: #ffb84d;
+        }
+
         .cb-qualities {
-            display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 10px; margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
         }
+
         .cb-qual-btn {
-            background: #333; padding: 12px; border-radius: 6px; text-align: center;
-            cursor: pointer; border: 1px solid #555;
+            background: #333;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #555;
         }
-        .cb-qual-btn:active { background: #555; }
-        .cb-qual-btn strong { color: #ffb84d; font-size: 1.1rem; }
+
+        .cb-qual-btn:active {
+            background: #555;
+        }
+
+        .cb-qual-btn strong {
+            color: #ffb84d;
+            font-size: 1.1rem;
+        }
 
         /* --- Popup Modals --- */
-        #key-picker-modal, #scale-root-picker-modal, #tuning-presets-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;
+        #key-picker-modal,
+        #scale-root-picker-modal,
+        #tuning-presets-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
         }
+
         .modal-content {
-            background: #2a2a2a; padding: 20px; border-radius: 10px; border: 1px solid #555;
-            text-align: center; max-width: 90%; width: 350px; max-height: 90vh; overflow-y: auto;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #555;
+            text-align: center;
+            max-width: 90%;
+            width: 350px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        .key-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+
+        .key-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
         .key-btn {
-            padding: 15px 0; font-size: 1.2rem; background: #1a1a1a; color: #ffb84d;
-            border: 1px solid #555; border-radius: 6px; cursor: pointer; transition: 0.2s;
+            padding: 15px 0;
+            font-size: 1.2rem;
+            background: #1a1a1a;
+            color: #ffb84d;
+            border: 1px solid #555;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        .key-btn:hover:not(.disabled) { background: #333; }
-        .key-btn.disabled { opacity: 0.2; pointer-events: none; }
-        .key-btn.active { background: #ffb84d; color: #000; border-color: #ffb84d; }
-        #btn-any-key { margin-top: 15px; width: 100%; padding: 12px; background: #4da6ff; color: #000; border: none; font-weight: bold;}
+
+        .key-btn:hover:not(.disabled) {
+            background: #333;
+        }
+
+        .key-btn.disabled {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .key-btn.active {
+            background: #ffb84d;
+            color: #000;
+            border-color: #ffb84d;
+        }
+
+        #btn-any-key {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: #4da6ff;
+            color: #000;
+            border: none;
+            font-weight: bold;
+        }
 
         /* Styles spécifiques pour la liste d'accordages */
         .tuning-preset-btn {
-            display: block; width: 100%; padding: 12px; margin-top: 8px;
-            background: #1a1a1a; color: #f0f0f0; border: 1px solid #555;
-            border-radius: 6px; cursor: pointer; text-align: left;
-            display: flex; justify-content: space-between; align-items: center;
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            background: #1a1a1a;
+            color: #f0f0f0;
+            border: 1px solid #555;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .tuning-preset-btn:hover { background: #333; }
-        .tuning-preset-btn .tuning-notes { color: #aaa; font-size: 0.85rem; }
+
+        .tuning-preset-btn:hover {
+            background: #333;
+        }
+
+        .tuning-preset-btn .tuning-notes {
+            color: #aaa;
+            font-size: 0.85rem;
+        }
 
         .instrument-selector {
-            display: flex; justify-content: space-around; flex-wrap: wrap; gap: 5px;
-            margin-bottom: 15px; border-bottom: 1px solid #555; padding-bottom: 10px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #555;
+            padding-bottom: 10px;
         }
 
         .instrument-btn {
-            background: transparent; border: none; color: #aaa;
-            font-size: 1rem; cursor: pointer; padding: 5px 10px;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px 10px;
         }
+
         .instrument-btn.active {
-            color: #4da6ff; border-bottom: 2px solid #4da6ff; font-weight: bold;
+            color: #4da6ff;
+            border-bottom: 2px solid #4da6ff;
+            font-weight: bold;
+        }
+
+        /* --- Version App --- */
+        #app-version {
+            position: fixed;
+            bottom: 4px;
+            right: 8px;
+            font-size: 0.65rem;
+            color: #555;
+            pointer-events: none;
+            /* Pour ne pas gêner les clics */
+            z-index: 1000;
         }
 
         /* --- ZEN MODE (Cacher l'interface) --- */
-        body.zen-mode #top-bar, 
+        body.zen-mode #top-bar,
         body.zen-mode #dictionary-zone,
         body.zen-mode .btn-tuning-presets,
         body.zen-mode .instrument-label,
-        body.zen-mode .zoom-controls {
+        body.zen-mode #app-version body.zen-mode .zoom-controls {
             display: none !important;
         }
+
         body.zen-mode #btn-restore-ui {
             display: flex !important;
         }
-        .floating-restore {
-            position: fixed; top: 15px; right: 15px; z-index: 9999;
-            background: rgba(40, 40, 40, 0.8); border: 1px solid #555;
-            backdrop-filter: blur(4px); border-radius: 50%;
-            width: 46px; height: 46px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            display: none; justify-content: center; align-items: center; cursor: pointer; color: #aaa;
-        }
-        .floating-restore:hover { background: #2a2a2a; color: #fff; }
 
+        .floating-restore {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            background: rgba(40, 40, 40, 0.8);
+            border: 1px solid #555;
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            width: 46px;
+            height: 46px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .floating-restore:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        /* Animation Audio */
+        @keyframes pulse-audio {
+            0% {
+                color: #4da6ff;
+            }
+
+            50% {
+                color: #fff;
+                transform: scale(1.1);
+            }
+
+            100% {
+                color: #4da6ff;
+            }
+        }
+
+        .playing-audio {
+            animation: pulse-audio 0.5s infinite;
+        }
     </style>
 </head>
+
 <body>
     <div id="orientation-warning">
         📱 Veuillez tourner votre appareil en mode paysage pour utiliser l'application.
@@ -293,7 +777,11 @@
 
     <!-- Bouton flottant pour restaurer l'UI quand Zen Mode est actif -->
     <button class="floating-restore" id="btn-restore-ui" title="Afficher l'interface">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
     </button>
 
     <div id="app">
@@ -303,48 +791,103 @@
                 <!-- Dropdown Modes -->
                 <div class="dropdown">
                     <button class="icon-btn" id="btn-app-mode" title="Mode de recherche">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
                     </button>
                     <div class="dropdown-content">
                         <a onclick="setAppMode('explore')">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
                             Mode Exploration
                         </a>
                         <a onclick="setAppMode('search_notes')">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 18V5l12-2v13"></path>
+                                <circle cx="6" cy="18" r="3"></circle>
+                                <circle cx="18" cy="16" r="3"></circle>
+                            </svg>
                             Recherche par Notes
                         </a>
                         <a onclick="setAppMode('search_intervals')">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="4" y1="9" x2="20" y2="9"></line>
+                                <line x1="4" y1="15" x2="20" y2="15"></line>
+                                <line x1="10" y1="3" x2="8" y2="21"></line>
+                                <line x1="16" y1="3" x2="14" y2="21"></line>
+                            </svg>
                             Recherche par Intervalles
                         </a>
                     </div>
                 </div>
                 <!-- Toggle Affichage (Notes / Intervalles) -->
                 <button class="icon-btn" id="btn-display-mode" title="Affichage : Notes / Intervalles">
-                    <svg id="icon-notes" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-                    <svg id="icon-intervals" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                    <svg id="icon-notes" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    <svg id="icon-intervals" style="display:none;" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="4" y1="9" x2="20" y2="9"></line>
+                        <line x1="4" y1="15" x2="20" y2="15"></line>
+                        <line x1="10" y1="3" x2="8" y2="21"></line>
+                        <line x1="16" y1="3" x2="14" y2="21"></line>
+                    </svg>
                 </button>
             </div>
-            
+
             <div class="header-center">
-                <h1 id="scale-name">...</h1>
+                <div id="scale-name-container">
+                    <h1 id="scale-name">...</h1><button class="icon-btn" id="btn-play-audio"><svg width="24" height="24"
+                            viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z" />
+                        </svg></button>
+                </div>
                 <div id="formula-bar"></div>
             </div>
-            
+
             <div class="header-section header-right">
                 <div style="display:flex; gap: 4px;">
                     <button class="icon-btn" id="btn-hide-ui" title="Cacher l'interface (Zen Mode)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                            </path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
                     </button>
                     <button class="icon-btn" id="btn-split" title="Séparer la vue (2 instruments)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="12" x2="21" y2="12"></line></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                        </svg>
                     </button>
                     <button class="icon-btn" id="btn-toggle-dict" title="Afficher/Masquer le dictionnaire">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="15" y1="3" x2="15" y2="21"></line>
+                        </svg>
                     </button>
                     <button class="icon-btn" id="btn-fullscreen" title="Plein écran">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                            </path>
+                        </svg>
                     </button>
                 </div>
                 <div style="display:flex; align-items:center; margin-left: 15px; gap: 5px;">
@@ -353,14 +896,22 @@
                 </div>
             </div>
         </header>
+        <div id="app-version">v1.0.0</div>
 
         <div id="main-content">
             <!-- Zone Instruments (Multiples possibles) -->
             <div id="instruments-wrapper">
                 <!-- Inst 0 -->
                 <main class="instrument-container" id="inst-container-0">
-                    <button class="btn-tuning-presets" onclick="openTuningPresetsPicker(0)" title="Instrument & Accordages">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <button class="btn-tuning-presets" onclick="openTuningPresetsPicker(0)"
+                        title="Instrument & Accordages">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
                     </button>
                     <div class="instrument-label" id="inst-label-0"></div>
                     <canvas id="canvas-0"></canvas>
@@ -372,8 +923,15 @@
                 </main>
                 <!-- Inst 1 (Split) -->
                 <main class="instrument-container" id="inst-container-1" style="display:none;">
-                    <button class="btn-tuning-presets" onclick="openTuningPresetsPicker(1)" title="Instrument & Accordages">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <button class="btn-tuning-presets" onclick="openTuningPresetsPicker(1)"
+                        title="Instrument & Accordages">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
                     </button>
                     <div class="instrument-label" id="inst-label-1"></div>
                     <canvas id="canvas-1"></canvas>
@@ -397,9 +955,9 @@
                         <button id="btn-filter-common" class="active-toggle" style="padding: 4px 8px;">Common</button>
                     </div>
                 </div>
-                
+
                 <div id="dictionary-grid"></div>
-                
+
                 <div id="chord-builder">
                     <div class="cb-roots" id="cb-roots"></div>
                     <div class="cb-qualities" id="cb-qualities"></div>
@@ -413,7 +971,8 @@
                 <h3 id="key-picker-title">Sélectionner la Tonalité</h3>
                 <div class="key-picker-grid" id="key-picker-grid"></div>
                 <button id="btn-any-key" class="key-btn">Toutes (Any)</button>
-                <button onclick="closeKeyPicker()" style="margin-top:10px; width:100%; background: #555;">Annuler</button>
+                <button onclick="closeKeyPicker()"
+                    style="margin-top:10px; width:100%; background: #555;">Annuler</button>
             </div>
         </div>
 
@@ -422,7 +981,8 @@
             <div class="modal-content">
                 <h3 id="scale-root-picker-title">Sélectionner la Tonalité</h3>
                 <div class="key-picker-grid" id="scale-root-picker-grid"></div>
-                <button onclick="document.getElementById('scale-root-picker-modal').style.display='none'" style="margin-top:15px; width:100%; background: #555;">Annuler</button>
+                <button onclick="document.getElementById('scale-root-picker-modal').style.display='none'"
+                    style="margin-top:15px; width:100%; background: #555;">Annuler</button>
             </div>
         </div>
 
@@ -430,17 +990,22 @@
         <div id="tuning-presets-modal">
             <div class="modal-content">
                 <div class="instrument-selector">
-                    <button class="instrument-btn active" id="btn-inst-guitar" onclick="setInstrumentType('guitar')">Guitare</button>
+                    <button class="instrument-btn active" id="btn-inst-guitar"
+                        onclick="setInstrumentType('guitar')">Guitare</button>
                     <button class="instrument-btn" id="btn-inst-bass" onclick="setInstrumentType('bass')">Basse</button>
-                    <button class="instrument-btn" id="btn-inst-ukulele" onclick="setInstrumentType('ukulele')">Ukulélé</button>
-                    <button class="instrument-btn" id="btn-inst-piano" onclick="setInstrumentType('piano')">Piano</button>
-                    <button class="instrument-btn" id="btn-inst-score" onclick="setInstrumentType('score')">Partition</button>
+                    <button class="instrument-btn" id="btn-inst-ukulele"
+                        onclick="setInstrumentType('ukulele')">Ukulélé</button>
+                    <button class="instrument-btn" id="btn-inst-piano"
+                        onclick="setInstrumentType('piano')">Piano</button>
+                    <button class="instrument-btn" id="btn-inst-score"
+                        onclick="setInstrumentType('score')">Partition</button>
                 </div>
                 <h3 id="tuning-title">Accordages</h3>
                 <div id="tuning-presets-list" style="margin-top: 15px;">
                     <!-- Rempli par JS -->
                 </div>
-                <button onclick="document.getElementById('tuning-presets-modal').style.display='none'" style="margin-top:15px; width:100%; background: #555;">Fermer</button>
+                <button onclick="document.getElementById('tuning-presets-modal').style.display='none'"
+                    style="margin-top:15px; width:100%; background: #555;">Fermer</button>
             </div>
         </div>
     </div>
@@ -450,9 +1015,9 @@
         const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
         const ALL_INTERVALS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', '#5', '6', 'b7', '7'];
-        
+
         // Mappage pour le solfège (0 = C, 1 = D, 2 = E...)
-        const BASE_LETTERS = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6]; 
+        const BASE_LETTERS = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
         const NATURAL_PITCHES = [0, 2, 4, 5, 7, 9, 11]; // Index pitch pour C, D, E, F, G, A, B
 
         const INTERVAL_SEMITONES = {
@@ -525,13 +1090,13 @@
         ];
 
         function calculateProfile(item) {
-             const intervals = item.intervals.split(',').map(i => i.trim());
-             let profile = 0;
-             intervals.forEach(interval => {
-                 const semitones = INTERVAL_SEMITONES[interval];
-                 if (semitones !== undefined) profile |= (1 << semitones);
-             });
-             item.profile = profile;
+            const intervals = item.intervals.split(',').map(i => i.trim());
+            let profile = 0;
+            intervals.forEach(interval => {
+                const semitones = INTERVAL_SEMITONES[interval];
+                if (semitones !== undefined) profile |= (1 << semitones);
+            });
+            item.profile = profile;
         }
         CHORD_FORMULAS.forEach(calculateProfile);
 
@@ -580,48 +1145,48 @@
 
         // --- ÉTAT DE L'APPLICATION ---
         const AppState = {
-            currentKey: 0, 
-            searchKey: null, 
-            currentScale: null, 
-            currentChordRoot: null, 
-            currentChordFormula: null, 
-            displayMode: 'notes', 
-            appMode: 'explore', 
-            dictTab: 'scales', 
+            currentKey: 0,
+            searchKey: null,
+            currentScale: null,
+            currentChordRoot: null,
+            currentChordFormula: null,
+            displayMode: 'notes',
+            appMode: 'explore',
+            dictTab: 'scales',
             showOnlyCommon: true,
-            selectedNotesSet: new Set(), 
+            selectedNotesSet: new Set(),
             selectedIntervalsSet: new Set(),
             cbSelectedRoot: 0,
-            
+
             splitMode: false,
             dictVisible: true,
             instrumentsData: [
                 { type: 'guitar', tuningName: 'Standard', tuning: [...TUNING_PRESETS['guitar'][0].notes] },
-                { type: 'piano', tuningName: '', tuning: [] } 
+                { type: 'piano', tuningName: '', tuning: [] }
             ],
-            
+
             activeInstrumentMenuIndex: 0,
-            tuningStringIndex: null, 
-            
+            tuningStringIndex: null,
+
             getActiveNotes() {
                 if (this.appMode === 'search_notes') {
                     return Array.from(this.selectedNotesSet).map(index => ({ index: index, interval: '?', isRoot: false, isChordNote: false }));
                 } else if (this.appMode === 'search_intervals') {
-                     let activeNotes = [];
-                     this.selectedIntervalsSet.forEach(interval => {
-                         const semitones = INTERVAL_SEMITONES[interval];
-                         if (semitones !== undefined) {
-                             const noteIndex = (this.currentKey + semitones) % 12;
-                             activeNotes.push({ index: noteIndex, interval: interval, isRoot: interval === '1', isChordNote: false });
-                         }
-                     });
-                     return activeNotes;
+                    let activeNotes = [];
+                    this.selectedIntervalsSet.forEach(interval => {
+                        const semitones = INTERVAL_SEMITONES[interval];
+                        if (semitones !== undefined) {
+                            const noteIndex = (this.currentKey + semitones) % 12;
+                            activeNotes.push({ index: noteIndex, interval: interval, isRoot: interval === '1', isChordNote: false });
+                        }
+                    });
+                    return activeNotes;
                 }
 
                 if (!this.currentScale) return [];
                 const scaleIntervals = this.currentScale.intervals.split(',').map(i => i.trim());
                 let activeNotes = [];
-                
+
                 scaleIntervals.forEach(interval => {
                     const semitones = INTERVAL_SEMITONES[interval];
                     if (semitones !== undefined) {
@@ -633,15 +1198,15 @@
                 if (this.dictTab === 'chords' && this.currentChordFormula !== null && this.currentChordRoot !== null) {
                     const chordIntervals = this.currentChordFormula.intervals.split(',').map(i => i.trim());
                     chordIntervals.forEach(interval => {
-                         const semitones = INTERVAL_SEMITONES[interval];
-                         if (semitones !== undefined) {
-                             const chordNoteIndex = (this.currentChordRoot + semitones) % 12;
-                             const existing = activeNotes.find(n => n.index === chordNoteIndex);
-                             if (existing) {
-                                 existing.isChordNote = true;
-                                 if (interval === '1') existing.isChordRoot = true;
-                             }
-                         }
+                        const semitones = INTERVAL_SEMITONES[interval];
+                        if (semitones !== undefined) {
+                            const chordNoteIndex = (this.currentChordRoot + semitones) % 12;
+                            const existing = activeNotes.find(n => n.index === chordNoteIndex);
+                            if (existing) {
+                                existing.isChordNote = true;
+                                if (interval === '1') existing.isChordRoot = true;
+                            }
+                        }
                     });
                 }
                 return activeNotes;
@@ -667,7 +1232,7 @@
                 dictVisible: AppState.dictVisible,
                 instrumentsData: AppState.instrumentsData
             };
-            try { localStorage.setItem('showMeScales_State', JSON.stringify(state)); } catch(e) {}
+            try { localStorage.setItem('showMeScales_State', JSON.stringify(state)); } catch (e) { }
         }
 
         function loadState() {
@@ -682,11 +1247,11 @@
                     AppState.showOnlyCommon = saved.showOnlyCommon !== undefined ? saved.showOnlyCommon : true;
                     AppState.splitMode = saved.splitMode || false;
                     AppState.dictVisible = saved.dictVisible !== undefined ? saved.dictVisible : true;
-                    
+
                     if (saved.instrumentsData && saved.instrumentsData.length === 2) {
                         AppState.instrumentsData = saved.instrumentsData;
                     }
-                    
+
                     if (saved.currentScaleName) {
                         const found = SCALES_DB.find(s => s.name === saved.currentScaleName);
                         AppState.currentScale = found || SCALES_DB[0];
@@ -694,7 +1259,7 @@
                 } else {
                     AppState.currentScale = SCALES_DB[0];
                 }
-            } catch(e) { AppState.currentScale = SCALES_DB[0]; }
+            } catch (e) { AppState.currentScale = SCALES_DB[0]; }
         }
 
         // --- ARCHITECTURE INSTRUMENT ---
@@ -708,35 +1273,35 @@
                 this.ctx = this.canvas.getContext('2d', { alpha: false });
                 this.pegsContainer = this.container.querySelector('.tuning-pegs');
                 this.labelContainer = this.container.querySelector('.instrument-label');
-                
+
                 this.width = 0;
                 this.height = 0;
-                this.isCameraInitialized = false; 
+                this.isCameraInitialized = false;
                 this.camera = { x: 0, y: 0, zoom: 1 };
                 this.isDragging = false;
                 this.lastPointer = { x: 0, y: 0 };
                 this.clickStartPos = { x: 0, y: 0 };
-                
+
                 this._bindEvents();
             }
-            
+
             _bindEvents() {
                 this.canvas.style.touchAction = 'none';
 
-                this.pointerDownHandler = (e) => { 
-                    this.isDragging = true; 
-                    this.lastPointer = { x: e.clientX, y: e.clientY }; 
-                    this.clickStartPos = { x: e.clientX, y: e.clientY }; 
+                this.pointerDownHandler = (e) => {
+                    this.isDragging = true;
+                    this.lastPointer = { x: e.clientX, y: e.clientY };
+                    this.clickStartPos = { x: e.clientX, y: e.clientY };
                     this.canvas.setPointerCapture(e.pointerId);
                 };
-                
+
                 this.pointerMoveHandler = (e) => {
                     if (!this.isDragging) return;
-                    e.preventDefault(); 
-                    
-                    this.camera.x += (e.clientX - this.lastPointer.x) / this.camera.zoom; 
+                    e.preventDefault();
+
+                    this.camera.x += (e.clientX - this.lastPointer.x) / this.camera.zoom;
                     this.camera.y += (e.clientY - this.lastPointer.y) / this.camera.zoom;
-                    this.lastPointer = { x: e.clientX, y: e.clientY }; 
+                    this.lastPointer = { x: e.clientX, y: e.clientY };
                     this.draw();
                 };
 
@@ -744,17 +1309,17 @@
                     if (!this.isDragging) return;
                     this.isDragging = false;
                     this.canvas.releasePointerCapture(e.pointerId);
-                    
+
                     const dx = e.clientX - this.clickStartPos.x;
                     const dy = e.clientY - this.clickStartPos.y;
-                    if (Math.sqrt(dx*dx + dy*dy) < 5) {
+                    if (Math.sqrt(dx * dx + dy * dy) < 5) {
                         this.handleClick(e.clientX, e.clientY);
                     }
                 };
-                
-                this.wheelHandler = (e) => { 
-                    e.preventDefault(); 
-                    this.zoomAt(e.offsetX, e.offsetY, e.deltaY > 0 ? 0.9 : 1.1); 
+
+                this.wheelHandler = (e) => {
+                    e.preventDefault();
+                    this.zoomAt(e.offsetX, e.offsetY, e.deltaY > 0 ? 0.9 : 1.1);
                 };
 
                 this.canvas.addEventListener('pointerdown', this.pointerDownHandler);
@@ -767,19 +1332,19 @@
             destroy() {
                 const newCanvas = this.canvas.cloneNode(false);
                 this.canvas.replaceWith(newCanvas);
-                this.canvas = newCanvas; 
+                this.canvas = newCanvas;
             }
 
             resize() {
                 const dpr = window.devicePixelRatio || 1;
                 const rect = this.canvas.parentElement.getBoundingClientRect();
-                
+
                 if (rect.width === 0 || rect.height === 0) return;
 
-                this.canvas.width = rect.width * dpr; 
+                this.canvas.width = rect.width * dpr;
                 this.canvas.height = rect.height * dpr;
-                this.ctx.scale(dpr, dpr); 
-                this.width = rect.width; 
+                this.ctx.scale(dpr, dpr);
+                this.width = rect.width;
                 this.height = rect.height;
 
                 if (!this.isCameraInitialized) {
@@ -797,27 +1362,27 @@
                 this.camera.y = mouseY / newZoom - (mouseY / this.camera.zoom - this.camera.y);
                 this.camera.zoom = newZoom; this.draw();
             }
-            zoomIn() { this.zoomAt(this.width/2, this.height/2, 1.2); }
-            zoomOut() { this.zoomAt(this.width/2, this.height/2, 0.8); }
+            zoomIn() { this.zoomAt(this.width / 2, this.height / 2, 1.2); }
+            zoomOut() { this.zoomAt(this.width / 2, this.height / 2, 0.8); }
             screenToWorld(screenX, screenY) {
                 const rect = this.canvas.getBoundingClientRect();
                 return { x: ((screenX - rect.left) / this.camera.zoom) - this.camera.x, y: ((screenY - rect.top) / this.camera.zoom) - this.camera.y };
             }
-            handleClick(screenX, screenY) {}
+            handleClick(screenX, screenY) { }
             draw() { this.ctx.fillStyle = '#111'; this.ctx.fillRect(0, 0, this.width, this.height); }
-            setupTuningUI() {}
+            setupTuningUI() { }
         }
 
         class FretboardInstrument extends BaseInstrument {
             constructor(containerId, index) {
                 super(containerId, index);
-                this.tuning = AppState.instrumentsData[index].tuning; 
+                this.tuning = AppState.instrumentsData[index].tuning;
                 this.fretsCount = 24;
-                
-                this.scaleLength = 1600; 
-                this.nutSpacing = 32;    
-                this.bridgeSpacing = 48; 
-                
+
+                this.scaleLength = 1600;
+                this.nutSpacing = 32;
+                this.bridgeSpacing = 48;
+
                 this.setupTuningUI();
             }
 
@@ -834,8 +1399,8 @@
             }
 
             centerCamera() {
-                this.camera.x = 80; 
-                this.camera.y = this.height / 2; 
+                this.camera.x = 80;
+                this.camera.y = this.height / 2;
                 this.camera.zoom = 1;
             }
 
@@ -850,17 +1415,17 @@
             setupTuningUI() {
                 this.pegsContainer.innerHTML = '';
                 const isCustom = AppState.instrumentsData[this.index].tuningName === 'Custom';
-                
+
                 this.tuning.forEach((noteIndex, stringIndex) => {
                     let peg = document.createElement('div');
                     peg.id = `peg-${this.index}-${stringIndex}`;
-                    
+
                     if (isCustom) {
-                        peg.className = 'peg'; 
+                        peg.className = 'peg';
                         peg.innerText = NOTES[noteIndex];
                         peg.addEventListener('click', () => openKeyPicker(this.index, stringIndex));
                     } else {
-                        peg.className = 'peg disabled-peg'; 
+                        peg.className = 'peg disabled-peg';
                         peg.innerText = NOTES[noteIndex];
                     }
                     peg.style.position = 'absolute';
@@ -877,26 +1442,26 @@
             handleClick(screenX, screenY) {
                 if (AppState.appMode !== 'search_notes') return;
                 const worldPos = this.screenToWorld(screenX, screenY);
-                
+
                 let bestMatch = null;
-                let minDist = 400; 
-                
+                let minDist = 400;
+
                 for (let s = 0; s < this.tuning.length; s++) {
                     const stringBaseNote = this.tuning[s];
                     for (let f = 0; f <= this.fretsCount; f++) {
-                        const x = f === 0 ? -15 : (this.getFretX(f) + this.getFretX(f-1)) / 2;
+                        const x = f === 0 ? -15 : (this.getFretX(f) + this.getFretX(f - 1)) / 2;
                         const y = this.getStringY(s, x);
-                        
+
                         const dx = worldPos.x - x;
                         const dy = worldPos.y - y;
-                        const distSq = dx*dx + dy*dy;
+                        const distSq = dx * dx + dy * dy;
                         if (distSq < minDist) {
                             minDist = distSq;
                             bestMatch = { s, f, noteIndex: (stringBaseNote + f) % 12 };
                         }
                     }
                 }
-                
+
                 if (bestMatch) {
                     const noteIndex = bestMatch.noteIndex;
                     if (AppState.selectedNotesSet.has(noteIndex)) AppState.selectedNotesSet.delete(noteIndex);
@@ -904,7 +1469,7 @@
                     updateUI();
                 }
             }
-            
+
             draw() {
                 if (!this.tuning || !this.isCameraInitialized) return;
                 super.draw();
@@ -917,33 +1482,33 @@
                 ctx.fillStyle = '#2c1e16';
                 ctx.beginPath();
                 const yTopNut = this.getStringY(0, 0) - 15;
-                const yBotNut = this.getStringY(N-1, 0) + 15;
+                const yBotNut = this.getStringY(N - 1, 0) + 15;
                 const yTopEnd = this.getStringY(0, endX) - 15;
-                const yBotEnd = this.getStringY(N-1, endX) + 15;
-                
+                const yBotEnd = this.getStringY(N - 1, endX) + 15;
+
                 ctx.moveTo(0, yTopNut); ctx.lineTo(endX, yTopEnd); ctx.lineTo(endX, yBotEnd); ctx.lineTo(0, yBotNut); ctx.fill();
 
                 // Repères (Fret markers)
                 const markers = [3, 5, 7, 9, 15, 17, 19, 21], doubleMarkers = [12, 24];
-                
+
                 // 1. Repères à l'intérieur du manche
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                for(let i = 1; i <= this.fretsCount; i++) {
-                    const cx = (this.getFretX(i) + this.getFretX(i-1)) / 2;
-                    const cy = (this.getStringY(0, cx) + this.getStringY(N-1, cx)) / 2;
-                    if (markers.includes(i)) { 
-                        ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fill(); 
-                    } else if (doubleMarkers.includes(i)) { 
-                        const offset = (this.getStringY(N-1, cx) - this.getStringY(0, cx)) / 4;
+                for (let i = 1; i <= this.fretsCount; i++) {
+                    const cx = (this.getFretX(i) + this.getFretX(i - 1)) / 2;
+                    const cy = (this.getStringY(0, cx) + this.getStringY(N - 1, cx)) / 2;
+                    if (markers.includes(i)) {
+                        ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fill();
+                    } else if (doubleMarkers.includes(i)) {
+                        const offset = (this.getStringY(N - 1, cx) - this.getStringY(0, cx)) / 4;
                         ctx.beginPath(); ctx.arc(cx, cy - offset, 8, 0, Math.PI * 2); ctx.fill();
-                        ctx.beginPath(); ctx.arc(cx, cy + offset, 8, 0, Math.PI * 2); ctx.fill(); 
+                        ctx.beginPath(); ctx.arc(cx, cy + offset, 8, 0, Math.PI * 2); ctx.fill();
                     }
                 }
 
                 // 2. Repères d'aide au-dessus du manche (pour rester visibles)
                 ctx.fillStyle = '#555';
-                for(let i = 1; i <= this.fretsCount; i++) {
-                    const cx = (this.getFretX(i) + this.getFretX(i-1)) / 2;
+                for (let i = 1; i <= this.fretsCount; i++) {
+                    const cx = (this.getFretX(i) + this.getFretX(i - 1)) / 2;
                     const yTopMarker = this.getStringY(0, cx) - 35;
                     if (markers.includes(i)) {
                         ctx.beginPath(); ctx.arc(cx, yTopMarker, 4, 0, Math.PI * 2); ctx.fill();
@@ -955,7 +1520,7 @@
 
                 for (let i = 0; i <= this.fretsCount; i++) {
                     const fx = this.getFretX(i);
-                    ctx.beginPath(); ctx.moveTo(fx, this.getStringY(0, fx) - 15); ctx.lineTo(fx, this.getStringY(N-1, fx) + 15);
+                    ctx.beginPath(); ctx.moveTo(fx, this.getStringY(0, fx) - 15); ctx.lineTo(fx, this.getStringY(N - 1, fx) + 15);
                     ctx.lineWidth = i === 0 ? 6 : 2; ctx.strokeStyle = i === 0 ? '#ddddcc' : '#888'; ctx.stroke();
                 }
 
@@ -970,13 +1535,13 @@
                     for (let f = 0; f <= this.fretsCount; f++) {
                         const noteIndex = (stringBaseNote + f) % 12;
                         const scaleNote = activeNotes.find(an => an.index === noteIndex);
-                        const x = f === 0 ? -15 : (this.getFretX(f) + this.getFretX(f-1)) / 2;
+                        const x = f === 0 ? -15 : (this.getFretX(f) + this.getFretX(f - 1)) / 2;
                         const y = this.getStringY(s, x);
 
                         if (scaleNote) {
                             const isRootShape = scaleNote.isRoot || (AppState.dictTab === 'chords' && scaleNote.isChordRoot);
-                            ctx.beginPath(); 
-                            
+                            ctx.beginPath();
+
                             if (isRootShape) {
                                 // Carré aux bords arrondis pour la fondamentale
                                 if (ctx.roundRect) ctx.roundRect(x - 14, y - 14, 28, 28, 6);
@@ -985,17 +1550,17 @@
                                 // Cercle pour les autres notes
                                 ctx.arc(x, y, 14, 0, Math.PI * 2);
                             }
-                            
+
                             if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
                                 ctx.fillStyle = '#ff4d4d';
                             } else {
                                 if (AppState.dictTab === 'chords' && scaleNote.isChordNote) {
                                     ctx.fillStyle = scaleNote.isChordRoot ? '#d9534f' : '#ff4d4d';
                                 } else {
-                                    ctx.fillStyle = scaleNote.isRoot ? '#1f6eb8' : '#4da6ff'; 
+                                    ctx.fillStyle = scaleNote.isRoot ? '#1f6eb8' : '#4da6ff';
                                 }
                             }
-                            
+
                             ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#222'; ctx.stroke();
 
                             ctx.fillStyle = '#fff';
@@ -1018,9 +1583,9 @@
                     for (let s = 0; s < N; s++) {
                         const peg = document.getElementById(`peg-${this.index}-${s}`);
                         if (peg) {
-                            const worldY = this.getStringY(s, -30); 
+                            const worldY = this.getStringY(s, -30);
                             const screenY = (worldY + this.camera.y) * this.camera.zoom;
-                            peg.style.top = `${screenY - 15}px`; 
+                            peg.style.top = `${screenY - 15}px`;
                         }
                     }
                 }
@@ -1056,7 +1621,7 @@
                 let layout = [];
                 const octavePattern = [
                     { note: 0, type: 'white', wIndex: 0 },
-                    { note: 1, type: 'black', wCenter: 1 }, 
+                    { note: 1, type: 'black', wCenter: 1 },
                     { note: 2, type: 'white', wIndex: 1 },
                     { note: 3, type: 'black', wCenter: 2 },
                     { note: 4, type: 'white', wIndex: 2 },
@@ -1070,7 +1635,7 @@
                 ];
 
                 for (let o = 0; o < this.octaves; o++) {
-                    const octaveOffsetX = o * 7 * this.whiteKeyWidth; 
+                    const octaveOffsetX = o * 7 * this.whiteKeyWidth;
                     octavePattern.forEach(p => {
                         const noteIndex = (this.startNote + p.note) % 12;
                         if (p.type === 'white') {
@@ -1103,7 +1668,7 @@
                         clickedNote = k.note; break;
                     }
                 }
-                
+
                 if (clickedNote === null) {
                     for (let i = layout.length - 1; i >= 0; i--) {
                         let k = layout[i];
@@ -1146,8 +1711,8 @@
 
                     if (scaleNote) {
                         const isRootShape = scaleNote.isRoot || (AppState.dictTab === 'chords' && scaleNote.isChordRoot);
-                        ctx.beginPath(); 
-                        
+                        ctx.beginPath();
+
                         if (isRootShape) {
                             if (ctx.roundRect) ctx.roundRect(cx - 16, cy - 16, 32, 32, 6);
                             else ctx.rect(cx - 16, cy - 16, 32, 32);
@@ -1196,7 +1761,7 @@
 
             centerCamera() {
                 this.camera.x = 80;
-                this.camera.y = this.height / 2; 
+                this.camera.y = this.height / 2;
                 this.camera.zoom = 1;
             }
 
@@ -1212,7 +1777,7 @@
                 let naturalPitch = NATURAL_PITCHES[normalizedPos];
                 let diff = (noteIndex - naturalPitch) % 12;
                 if (diff < 0) diff += 12;
-                
+
                 if (diff === 0) return '';
                 if (diff === 1) return '♯';
                 if (diff === 2) return '𝄪'; // Double dièse
@@ -1224,14 +1789,14 @@
             handleClick(screenX, screenY) {
                 if (AppState.appMode !== 'search_notes') return;
                 const worldPos = this.screenToWorld(screenX, screenY);
-                const yBottomLine = 40; 
-                
+                const yBottomLine = 40;
+
                 let staffPos = Math.round(2 - (worldPos.y - yBottomLine) / this.step);
-                if (staffPos < -5 || staffPos > 15) return; 
-                
+                if (staffPos < -5 || staffPos > 15) return;
+
                 let normalizedPos = ((staffPos % 7) + 7) % 7;
                 let clickedNote = NATURAL_PITCHES[normalizedPos];
-                
+
                 if (clickedNote !== undefined) {
                     if (AppState.selectedNotesSet.has(clickedNote)) AppState.selectedNotesSet.delete(clickedNote);
                     else AppState.selectedNotesSet.add(clickedNote);
@@ -1242,23 +1807,23 @@
             draw() {
                 if (!this.isCameraInitialized) return;
                 super.draw();
-                const ctx = this.ctx; 
+                const ctx = this.ctx;
                 const activeNotes = AppState.getActiveNotes();
-                
-                ctx.save(); 
-                ctx.scale(this.camera.zoom, this.camera.zoom); 
+
+                ctx.save();
+                ctx.scale(this.camera.zoom, this.camera.zoom);
                 ctx.translate(this.camera.x, this.camera.y);
 
-                const yBottomLine = 40; 
+                const yBottomLine = 40;
                 const staffWidth = Math.max(1000, this.width / this.camera.zoom + 200);
 
                 // --- 1. Dessiner la portée (5 lignes) ---
                 ctx.strokeStyle = '#888';
                 ctx.lineWidth = 1.5;
-                for(let i=0; i<5; i++) {
+                for (let i = 0; i < 5; i++) {
                     let y = yBottomLine - i * this.lineSpacing;
                     ctx.beginPath();
-                    ctx.moveTo(-this.camera.x, y); 
+                    ctx.moveTo(-this.camera.x, y);
                     ctx.lineTo(staffWidth - this.camera.x, y);
                     ctx.stroke();
                 }
@@ -1276,7 +1841,7 @@
                     let staffPos;
                     if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
                         staffPos = BASE_LETTERS[note.index];
-                        if (staffPos < BASE_LETTERS[AppState.currentKey]) staffPos += 7; 
+                        if (staffPos < BASE_LETTERS[AppState.currentKey]) staffPos += 7;
                     } else {
                         let degreeMatch = note.interval.match(/\d+/);
                         if (degreeMatch) {
@@ -1291,13 +1856,13 @@
                 });
 
                 if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
-                     visualNotes.sort((a,b) => a.staffPos - b.staffPos);
+                    visualNotes.sort((a, b) => a.staffPos - b.staffPos);
                 }
 
                 // --- 4. Dessiner les notes ---
                 let startX = 140;
                 let spacingX = 85;
-                
+
                 visualNotes.forEach((vn, i) => {
                     let x = startX + i * spacingX;
                     let y = yBottomLine - (vn.staffPos - 2) * this.step;
@@ -1306,14 +1871,14 @@
                     ctx.strokeStyle = '#888';
                     ctx.lineWidth = 1.5;
                     if (vn.staffPos <= 0) { // C4 ou plus bas
-                        for(let l = 0; l >= vn.staffPos; l -= 2) {
+                        for (let l = 0; l >= vn.staffPos; l -= 2) {
                             let ly = yBottomLine - (l - 2) * this.step;
-                            ctx.beginPath(); ctx.moveTo(x-18, ly); ctx.lineTo(x+18, ly); ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(x - 18, ly); ctx.lineTo(x + 18, ly); ctx.stroke();
                         }
                     } else if (vn.staffPos >= 12) { // A5 ou plus haut
-                        for(let l = 12; l <= vn.staffPos; l += 2) {
+                        for (let l = 12; l <= vn.staffPos; l += 2) {
                             let ly = yBottomLine - (l - 2) * this.step;
-                            ctx.beginPath(); ctx.moveTo(x-18, ly); ctx.lineTo(x+18, ly); ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(x - 18, ly); ctx.lineTo(x + 18, ly); ctx.stroke();
                         }
                     }
 
@@ -1330,35 +1895,35 @@
                     // Tête de la note
                     const isRootShape = vn.isRoot || (AppState.dictTab === 'chords' && vn.isChordRoot);
                     ctx.beginPath();
-                    
+
                     if (isRootShape) {
                         if (ctx.roundRect) ctx.roundRect(x - 10, y - 8, 20, 16, 5);
                         else ctx.rect(x - 10, y - 8, 20, 16);
                     } else {
                         ctx.ellipse(x, y, 9, 7, -Math.PI / 8, 0, Math.PI * 2);
                     }
-                    
+
                     if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
                         ctx.fillStyle = '#ff4d4d';
                     } else {
                         if (AppState.dictTab === 'chords' && vn.isChordNote) {
                             ctx.fillStyle = vn.isChordRoot ? '#d9534f' : '#ff4d4d';
                         } else {
-                            ctx.fillStyle = vn.isRoot ? '#1f6eb8' : '#e0e0e0'; 
+                            ctx.fillStyle = vn.isRoot ? '#1f6eb8' : '#e0e0e0';
                         }
                     }
                     ctx.fill();
-                    
+
                     // Hampe (Stem)
                     ctx.beginPath();
                     if (vn.staffPos < 6) {
                         // Hampe vers le haut (droite)
-                        ctx.moveTo(x + (isRootShape? 10 : 7), y - 2);
-                        ctx.lineTo(x + (isRootShape? 10 : 7), y - 40);
+                        ctx.moveTo(x + (isRootShape ? 10 : 7), y - 2);
+                        ctx.lineTo(x + (isRootShape ? 10 : 7), y - 40);
                     } else {
                         // Hampe vers le bas (gauche)
-                        ctx.moveTo(x - (isRootShape? 10 : 7), y + 2);
-                        ctx.lineTo(x - (isRootShape? 10 : 7), y + 40);
+                        ctx.moveTo(x - (isRootShape ? 10 : 7), y + 2);
+                        ctx.lineTo(x - (isRootShape ? 10 : 7), y + 40);
                     }
                     ctx.lineWidth = 2;
                     ctx.strokeStyle = ctx.fillStyle;
@@ -1373,7 +1938,7 @@
                         text = vn.interval !== '?' ? vn.interval : text;
                         if (text === '1') text = 'R'; // Remplacement du 1 par R
                     }
-                    ctx.fillText(text, x, yBottomLine + 60 + (i%2 === 0 ? 0 : 20)); // Décalage pour éviter les collisions textuelles
+                    ctx.fillText(text, x, yBottomLine + 60 + (i % 2 === 0 ? 0 : 20)); // Décalage pour éviter les collisions textuelles
                 });
 
                 ctx.restore();
@@ -1396,12 +1961,12 @@
         // --- THÉORIE MUSICALE : HARMONISATION ---
         function getHarmonizedChords(scaleProfile, rootKey) {
             let scaleNotes = [];
-            for(let i=0; i<12; i++) {
+            for (let i = 0; i < 12; i++) {
                 if ((scaleProfile & (1 << i)) !== 0) scaleNotes.push((rootKey + i) % 12);
             }
-            
+
             let sortedNotes = [];
-            for(let i=0; i<12; i++) {
+            for (let i = 0; i < 12; i++) {
                 let n = (rootKey + i) % 12;
                 if (scaleNotes.includes(n)) sortedNotes.push(n);
             }
@@ -1410,12 +1975,12 @@
             sortedNotes.forEach((rootNote, degreeIndex) => {
                 let degreeChords = [];
                 const isCommonFilter = AppState.showOnlyCommon;
-                
+
                 CHORD_FORMULAS.forEach(formula => {
                     if (isCommonFilter && !formula.common) return;
 
                     let isMatch = true;
-                    for(let i=0; i<12; i++) {
+                    for (let i = 0; i < 12; i++) {
                         if ((formula.profile & (1 << i)) !== 0) {
                             let chordNote = (rootNote + i) % 12;
                             if (!scaleNotes.includes(chordNote)) { isMatch = false; break; }
@@ -1425,7 +1990,7 @@
                         degreeChords.push({ rootNote: rootNote, formula: formula, degreeStr: ROMAN_NUMERALS[degreeIndex] });
                     }
                 });
-                
+
                 if (degreeChords.length > 0) harmonized.push({ rootNote: rootNote, degreeStr: ROMAN_NUMERALS[degreeIndex], chords: degreeChords });
             });
             return harmonized;
@@ -1433,7 +1998,7 @@
 
         // --- MOTEUR DE RECHERCHE INVERSÉE ---
         function isScaleMatchingSelection(searchProfile, scaleProfile, rootOffset) {
-            if (searchProfile === 0) return true; 
+            if (searchProfile === 0) return true;
             let shiftedScaleProfile = (scaleProfile | (scaleProfile << 12)) >> (12 - rootOffset);
             shiftedScaleProfile = shiftedScaleProfile & 0xFFF;
             return (searchProfile & shiftedScaleProfile) === searchProfile;
@@ -1461,10 +2026,10 @@
             AppState.splitMode = !AppState.splitMode;
             document.getElementById('inst-container-1').style.display = AppState.splitMode ? 'flex' : 'none';
             document.getElementById('btn-split').classList.toggle('active', AppState.splitMode);
-            
+
             // Attendre le redimensionnement du layout DOM avant de demander au Canvas de se dessiner
             requestAnimationFrame(() => {
-                instrumentInstances.forEach(inst => { if(inst) inst.resize(); });
+                instrumentInstances.forEach(inst => { if (inst) inst.resize(); });
                 updateUI();
             });
         }
@@ -1484,7 +2049,7 @@
                 dict.style.padding = '0';
                 btn.classList.add('active');
             }
-            setTimeout(() => { instrumentInstances.forEach(inst => { if(inst) inst.resize(); }); }, 300);
+            setTimeout(() => { instrumentInstances.forEach(inst => { if (inst) inst.resize(); }); }, 300);
             saveState();
         }
 
@@ -1503,7 +2068,7 @@
         function toggleZenMode() {
             document.body.classList.toggle('zen-mode');
             setTimeout(() => {
-                instrumentInstances.forEach(inst => { if(inst) inst.resize(); });
+                instrumentInstances.forEach(inst => { if (inst) inst.resize(); });
             }, 100); // Laisse le temps au DOM de recalculer ses dimensions
         }
 
@@ -1511,7 +2076,7 @@
             AppState.appMode = mode;
             if (mode !== 'search_notes') AppState.selectedNotesSet.clear();
             if (mode !== 'search_intervals') AppState.selectedIntervalsSet.clear();
-            
+
             if (mode === 'explore' && AppState.dictTab === 'chords') {
                 AppState.currentChordRoot = null; AppState.currentChordFormula = null;
             }
@@ -1522,7 +2087,7 @@
             AppState.dictTab = tabName;
             document.getElementById('tab-scales').className = tabName === 'scales' ? 'tab active' : 'tab';
             document.getElementById('tab-chords').className = tabName === 'chords' ? 'tab active' : 'tab';
-            
+
             if (tabName === 'chords' && AppState.appMode === 'explore') {
                 AppState.currentChordRoot = null; AppState.currentChordFormula = null;
             }
@@ -1538,12 +2103,12 @@
 
         function toggleChordInSearch(rootIndex, formulaProfile) {
             let activeSemitones = [];
-            for(let i=0; i<12; i++) {
+            for (let i = 0; i < 12; i++) {
                 if ((formulaProfile & (1 << i)) !== 0) {
                     activeSemitones.push((rootIndex + i) % 12);
                 }
             }
-            
+
             let allPresent = activeSemitones.every(note => AppState.selectedNotesSet.has(note));
             activeSemitones.forEach(note => {
                 if (allPresent) AppState.selectedNotesSet.delete(note);
@@ -1560,31 +2125,31 @@
             const dictTitle = document.getElementById('dict-title');
             const grid = document.getElementById('dictionary-grid');
             const chordBuilder = document.getElementById('chord-builder');
-            
-            formulaBar.className = ''; 
+
+            formulaBar.className = '';
             formulaBar.innerHTML = '';
 
             // Mise à jour de l'icône du mode de recherche
             btnAppMode.classList.toggle('active-search', AppState.appMode !== 'explore');
-            
+
             // Mise à jour de l'icône de toggle (notes ou intervalles)
             const btnMode = document.getElementById('btn-display-mode');
             document.getElementById('icon-notes').style.display = AppState.displayMode === 'notes' ? 'block' : 'none';
             document.getElementById('icon-intervals').style.display = AppState.displayMode === 'notes' ? 'none' : 'block';
             btnMode.classList.toggle('active', AppState.displayMode !== 'notes');
-            
+
             if (AppState.appMode === 'explore') {
                 let titleText = AppState.currentScale ? AppState.currentScale.name : '...';
                 if (AppState.dictTab === 'chords' && AppState.currentChordFormula) {
                     titleText += ` • ${NOTES[AppState.currentChordRoot]}${AppState.currentChordFormula.qualifiers[0]}`;
                 }
-                
+
                 scaleName.innerHTML = titleText;
                 scaleName.style.display = "block";
                 formulaBar.style.display = "flex";
                 dictTitle.innerText = AppState.dictTab === 'scales' ? "Dictionnaire de Gammes" : `Harmonisation (${NOTES[AppState.currentKey]} ${AppState.currentScale ? AppState.currentScale.name : ''})`;
                 btnKey.innerText = NOTES[AppState.currentKey];
-                
+
                 if (AppState.currentScale) {
                     AppState.currentScale.intervals.split(',').forEach(interval => {
                         const i = interval.trim();
@@ -1603,7 +2168,7 @@
                 scaleName.innerHTML = "Recherche par notes";
                 scaleName.style.display = "block";
                 formulaBar.style.display = "none";
-                
+
                 const noteCount = AppState.selectedNotesSet.size;
                 dictTitle.innerText = AppState.dictTab === 'scales' ? `Résultats (${noteCount} note${noteCount > 1 ? 's' : ''})` : "Ajouter un accord à la recherche";
                 btnKey.innerText = AppState.searchKey === null ? "Any" : NOTES[AppState.searchKey];
@@ -1620,14 +2185,14 @@
 
             } else if (AppState.appMode === 'search_intervals') {
                 scaleName.innerHTML = "Recherche par intervalles";
-                scaleName.style.display = "block"; 
+                scaleName.style.display = "block";
                 formulaBar.style.display = "flex";
                 formulaBar.className = 'interactive';
-                
+
                 const intCount = AppState.selectedIntervalsSet.size;
                 dictTitle.innerText = `Résultats (${intCount} intervalle${intCount > 1 ? 's' : ''})`;
-                btnKey.innerText = NOTES[AppState.currentKey]; 
-                
+                btnKey.innerText = NOTES[AppState.currentKey];
+
                 ALL_INTERVALS.forEach(interval => {
                     const span = document.createElement('span');
                     span.className = 'interval-badge' + (interval === '1' ? ' root' : '');
@@ -1644,7 +2209,7 @@
                 renderDictionaryGrid();
             }
 
-            instrumentInstances.forEach(inst => { if(inst) inst.draw(); });
+            instrumentInstances.forEach(inst => { if (inst) inst.draw(); });
             saveState(); // Auto-save after UI updates
         }
 
@@ -1654,7 +2219,7 @@
 
             if (AppState.appMode === 'explore' && AppState.dictTab === 'chords' && AppState.currentScale) {
                 const harmonized = getHarmonizedChords(AppState.currentScale.profile, AppState.currentKey);
-                
+
                 harmonized.forEach(group => {
                     const groupHeader = document.createElement('div');
                     groupHeader.className = 'dict-group-header';
@@ -1683,7 +2248,7 @@
                         grid.appendChild(domItem);
                     });
                 });
-                return; 
+                return;
             }
 
             const filteredScales = AppState.showOnlyCommon ? SCALES_DB.filter(item => item.common) : SCALES_DB;
@@ -1709,7 +2274,7 @@
                     isMatch = isScaleMatchingIntervals(AppState.selectedIntervalsSet, scale.intervals);
                     if (isMatch) subtitleStr = " in " + NOTES[AppState.currentKey];
                 } else if (AppState.appMode === 'explore') {
-                     subtitleStr = " in " + NOTES[AppState.currentKey];
+                    subtitleStr = " in " + NOTES[AppState.currentKey];
                 }
 
                 const domItem = document.createElement('div');
@@ -1726,16 +2291,16 @@
                 `;
 
                 domItem.onclick = () => {
-                    if(!isMatch) return;
+                    if (!isMatch) return;
                     if (AppState.appMode === 'search_notes' && AppState.searchKey === null && AppState.selectedNotesSet.size > 0) {
-                         const validKeys = getValidKeysForScale(searchProfile, scale.profile);
-                         if(validKeys.length > 1) { openScaleRootPicker(scale, validKeys); return; }
-                         else if (validKeys.length === 1) AppState.currentKey = validKeys[0];
+                        const validKeys = getValidKeysForScale(searchProfile, scale.profile);
+                        if (validKeys.length > 1) { openScaleRootPicker(scale, validKeys); return; }
+                        else if (validKeys.length === 1) AppState.currentKey = validKeys[0];
                     } else if (AppState.appMode === 'search_notes' && AppState.searchKey !== null) {
-                         AppState.currentKey = AppState.searchKey;
+                        AppState.currentKey = AppState.searchKey;
                     }
                     AppState.currentScale = scale;
-                    setAppMode('explore'); 
+                    setAppMode('explore');
                 };
                 grid.appendChild(domItem);
             });
@@ -1746,7 +2311,7 @@
             const cbQualities = document.getElementById('cb-qualities');
             cbRoots.innerHTML = ''; cbQualities.innerHTML = '';
 
-            for(let i=0; i<12; i++) {
+            for (let i = 0; i < 12; i++) {
                 const btn = document.createElement('div');
                 btn.className = 'cb-root-btn' + (i === AppState.cbSelectedRoot ? ' active' : '');
                 btn.innerText = NOTES[i];
@@ -1755,7 +2320,7 @@
             }
 
             const filteredFormulas = AppState.showOnlyCommon ? CHORD_FORMULAS.filter(f => f.common) : CHORD_FORMULAS;
-            
+
             filteredFormulas.forEach(formula => {
                 const btn = document.createElement('div');
                 btn.className = 'cb-qual-btn';
@@ -1768,13 +2333,13 @@
         // --- GESTION DES MODALS ET FICHIERS ---
         function openKeyPicker(instIndex = null, stringIndex = null) {
             AppState.tuningStringIndex = { instIndex, stringIndex };
-            
+
             const modal = document.getElementById('key-picker-modal');
             const grid = document.getElementById('key-picker-grid');
             const title = document.getElementById('key-picker-title');
             const btnAny = document.getElementById('btn-any-key');
             grid.innerHTML = '';
-            
+
             if (stringIndex !== null) {
                 title.innerText = `Accorder la corde ${stringIndex + 1}`;
                 btnAny.style.display = 'none';
@@ -1788,21 +2353,21 @@
                     btnAny.onclick = () => { AppState.searchKey = null; closeKeyPicker(); updateUI(); }
                 }
             }
-            
+
             const searchProfile = AppState.getSearchProfile();
             let validTonics = new Set();
             if (stringIndex === null && AppState.appMode === 'search_notes' && AppState.selectedNotesSet.size > 0 && AppState.dictTab === 'scales') {
                 const itemsToTest = AppState.showOnlyCommon ? SCALES_DB.filter(s => s.common) : SCALES_DB;
                 itemsToTest.forEach(item => { getValidKeysForScale(searchProfile, item.profile).forEach(k => validTonics.add(k)); });
             } else {
-                for(let i=0; i<12; i++) validTonics.add(i); 
+                for (let i = 0; i < 12; i++) validTonics.add(i);
             }
 
             for (let i = 0; i < 12; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'key-btn';
                 btn.innerText = NOTES[i];
-                
+
                 if (stringIndex !== null) {
                     if (instrumentInstances[instIndex] && instrumentInstances[instIndex].tuning && instrumentInstances[instIndex].tuning[stringIndex] === i) btn.classList.add('active');
                 } else {
@@ -1814,7 +2379,7 @@
                 btn.onclick = () => {
                     if (stringIndex !== null && instrumentInstances[instIndex]) {
                         instrumentInstances[instIndex].tuning[stringIndex] = i;
-                        AppState.instrumentsData[instIndex].tuningName = 'Custom'; 
+                        AppState.instrumentsData[instIndex].tuningName = 'Custom';
                         instrumentInstances[instIndex].setupTuningUI();
                         instrumentInstances[instIndex].draw();
                         updateUI();
@@ -1850,7 +2415,7 @@
                     btn.onclick = () => {
                         AppState.currentScale = scale;
                         AppState.currentKey = i;
-                        setAppMode('explore'); 
+                        setAppMode('explore');
                         modal.style.display = 'none';
                     };
                 }
@@ -1862,7 +2427,7 @@
         function openTuningPresetsPicker(instIndex) {
             AppState.activeInstrumentMenuIndex = instIndex;
             const currentType = AppState.instrumentsData[instIndex].type;
-            
+
             document.getElementById('btn-inst-guitar').classList.toggle('active', currentType === 'guitar');
             document.getElementById('btn-inst-bass').classList.toggle('active', currentType === 'bass');
             document.getElementById('btn-inst-ukulele').classList.toggle('active', currentType === 'ukulele');
@@ -1876,13 +2441,13 @@
         function setInstrumentType(type) {
             const instIndex = AppState.activeInstrumentMenuIndex;
             AppState.instrumentsData[instIndex].type = type;
-            
+
             document.getElementById('btn-inst-guitar').classList.toggle('active', type === 'guitar');
             document.getElementById('btn-inst-bass').classList.toggle('active', type === 'bass');
             document.getElementById('btn-inst-ukulele').classList.toggle('active', type === 'ukulele');
             document.getElementById('btn-inst-piano').classList.toggle('active', type === 'piano');
             document.getElementById('btn-inst-score').classList.toggle('active', type === 'score');
-            
+
             if (type !== 'piano' && type !== 'score') {
                 const presets = TUNING_PRESETS[type];
                 AppState.instrumentsData[instIndex].tuningName = presets[0].name;
@@ -1894,8 +2459,8 @@
 
             buildInstrument(instIndex);
             updateTuningPresetsList(instIndex, type);
-            updateUI(); 
-            
+            updateUI();
+
             requestAnimationFrame(() => {
                 if (instrumentInstances[instIndex]) {
                     instrumentInstances[instIndex].resize();
@@ -1921,7 +2486,7 @@
                     btn.className = 'tuning-preset-btn';
                     const notesStr = preset.notes.map(n => NOTES[n]).join(' ');
                     btn.innerHTML = `<span>${preset.name}</span> <span class="tuning-notes">${notesStr}</span>`;
-                    
+
                     btn.onclick = () => {
                         AppState.instrumentsData[instIndex].tuningName = preset.name;
                         AppState.instrumentsData[instIndex].tuning = [...preset.notes];
@@ -1939,12 +2504,59 @@
         function zoomIn(index) { if (instrumentInstances[index]) instrumentInstances[index].zoomIn(); }
         function zoomOut(index) { if (instrumentInstances[index]) instrumentInstances[index].zoomOut(); }
 
+        // --- AUDIO ---
+        let audioCtx = null;
+        async function playCurrentScale() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            const btn = document.getElementById('btn-play-audio');
+            btn.classList.add('playing-audio');
+            const notes = AppState.getActiveNotes().sort((a, b) => (INTERVAL_SEMITONES[a.interval] || 0) - (INTERVAL_SEMITONES[b.interval] || 0));
+            if (notes.length === 0) return;
+            const sequence = [...notes];
+            //if (sequence[sequence.length - 1].interval !== '1') sequence.push({ index: AppState.currentKey, interval: '8' });
+
+            let noteCounter = 0; // Compteur global pour décaler chaque note
+            for (let octave = 0; octave <= 2; octave++) {
+                sequence.forEach((n, i) => {
+                    if (octave === 2 && i > 0) return;
+                    const semi = INTERVAL_SEMITONES[n.interval] || 0;
+                    
+                    // Ta formule intégrant l'octave dynamique
+                    const freq = 440 * Math.pow(2, (60 + AppState.currentKey + semi + (octave * 12) - 69) / 12);
+                    
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'triangle'; 
+                    osc.frequency.value = freq;
+                    
+                    // On utilise noteCounter au lieu de i pour que les octaves se suivent
+                    const startTime = audioCtx.currentTime + (noteCounter * 0.4);
+                    
+                    gain.gain.setValueAtTime(0.1, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+                    
+                    osc.connect(gain); 
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(startTime); 
+                    osc.stop(startTime + 0.4);
+                    
+                    noteCounter++; // On incrémente pour la note suivante, peu importe l'octave
+                });
+            }
+
+            // Ajuste la fin de l'animation sur le bouton en fonction du nombre total de notes
+            setTimeout(() => btn.classList.remove('playing-audio'), noteCounter * 400);
+        }
+
         // --- INITIALISATION ---
         window.onload = async () => {
             // Chargement des gammes
             await initScalesDB();
-            loadState(); 
-            
+            loadState();
+
             buildInstrument(0);
             buildInstrument(1);
 
@@ -1963,19 +2575,20 @@
             document.getElementById('btn-split').addEventListener('click', toggleSplitMode);
             document.getElementById('btn-toggle-dict').addEventListener('click', toggleDictPanel);
             document.getElementById('btn-fullscreen').addEventListener('click', toggleFullScreen);
-            
+            document.getElementById('btn-play-audio').addEventListener('click', playCurrentScale);
+
             // Cacher/Restaurer l'interface (Zen Mode)
             document.getElementById('btn-hide-ui').addEventListener('click', toggleZenMode);
             document.getElementById('btn-restore-ui').addEventListener('click', toggleZenMode);
-            
+
             const btnFilter = document.getElementById('btn-filter-common');
             btnFilter.className = AppState.showOnlyCommon ? 'active-toggle' : '';
             btnFilter.addEventListener('click', () => { AppState.showOnlyCommon = !AppState.showOnlyCommon; btnFilter.className = AppState.showOnlyCommon ? 'active-toggle' : ''; updateUI(); });
-            
+
             updateUI();
-            
+
             requestAnimationFrame(() => {
-                instrumentInstances.forEach(inst => { if(inst) { inst.resize(); } });
+                instrumentInstances.forEach(inst => { if (inst) { inst.resize(); } });
             });
 
             // Initialiser le Wake Lock à la première interaction de l'utilisateur
@@ -1985,4 +2598,5 @@
         };
     </script>
 </body>
+
 </html>
