@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Show Me Scales</title>
+    <style>
+        /* --- Reset et base --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+        html, body {
+            width: 100%; height: 100%;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            touch-action: none; 
+        }
+
+        /* --- Avertissement Portrait --- */
+        #orientation-warning {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: white; z-index: 9999;
+            align-items: center; justify-content: center; text-align: center;
+            font-size: 1.5rem; padding: 20px;
+        }
+        @media screen and (orientation: portrait) {
+            #orientation-warning { display: flex; }
+            #app { display: none !important; }
+        }
+
+        /* --- Layout Principal --- */
+        #app { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+
+        /* --- 1. En-tête --- */
+        #top-bar {
+            height: 65px; background: #2a2a2a; border-bottom: 2px solid #444;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+            flex-shrink: 0;
+        }
+        
+        .header-section { display: flex; align-items: center; gap: 10px; width: 33%; }
+        .header-center { width: 34%; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .header-right { width: 33%; justify-content: flex-end; }
+
+        button {
+            background: #3a3a3a; border: 1px solid #555; color: white;
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+        button:active { background: #555; }
+        button.active-toggle { background: #4da6ff; color: #000; border-color: #4da6ff; }
+        button.search-mode-active { background: #ff4d4d; color: white; border-color: #ff4d4d; }
+
+        /* --- Icon Buttons --- */
+        .icon-btn { 
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; padding: 0;
+            background: transparent; border: 1px solid transparent; color: #aaa;
+        }
+        .icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .icon-btn.active { color: #4da6ff; background: rgba(77, 166, 255, 0.1); }
+
+        #scale-name { font-size: 1.2rem; color: #4da6ff; margin-bottom: 5px; white-space: nowrap; }
+        #formula-bar { display: flex; gap: 5px; font-size: 0.85rem; flex-wrap: wrap; justify-content: center; }
+        .interval-badge { background: #333; padding: 2px 6px; border-radius: 4px; border: 1px solid #555; transition: 0.1s; cursor: default; }
+        .interval-badge.root { background: #d9534f; color: white; border-color: #d9534f; }
+        
+        #btn-key {
+            font-size: 1.5rem; background: #1a1a1a; border-color: #ffb84d; 
+            color: #ffb84d; min-width: 50px; text-align: center;
+        }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none; position: absolute; background-color: #2a2a2a; min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid #444; border-radius: 6px;
+        }
+        .dropdown-content a { color: #f0f0f0; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; }
+        .dropdown-content a:hover { background-color: #3a3a3a; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        #formula-bar.interactive .interval-badge { cursor: pointer; }
+        #formula-bar.interactive .interval-badge:hover { background: #555; }
+        #formula-bar.interactive .interval-badge.selected { background: #ff4d4d; color: white; border-color: #ff4d4d; }
+        #formula-bar.interactive .interval-badge.root.selected { background: #d9534f; }
+
+        /* --- Structure Horizontale (Mobile Landscape Friendly) --- */
+        #main-content {
+            display: flex; flex-direction: row; flex-grow: 1; overflow: hidden;
+        }
+
+        /* --- 2. Zone Instrument(s) --- */
+        #instruments-wrapper {
+            display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;
+        }
+
+        .instrument-container {
+            flex: 1; position: relative; background: #111; overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            border-bottom: 2px solid #000;
+            display: flex;
+        }
+        .instrument-container:last-child { border-bottom: none; }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        .btn-tuning-presets {
+            position: absolute; top: 10px; left: 10px; z-index: 100;
+            background: rgba(40, 40, 40, 0.7); border: 1px solid transparent; color: #aaa;
+            width: 40px; height: 40px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; backdrop-filter: blur(4px);
+        }
+        .btn-tuning-presets:hover { color: #fff; background: rgba(60, 60, 60, 0.8); }
+        .btn-tuning-presets:active { background: #555; }
+
+        .instrument-label {
+            position: absolute; top: 10px; right: 10px; z-index: 100;
+            background: rgba(0, 0, 0, 0.6); padding: 4px 8px; border-radius: 4px;
+            font-size: 0.8rem; color: #aaa; pointer-events: none; border: 1px solid #333;
+        }
+
+        .tuning-pegs {
+            position: absolute; left: 0; top: 0; width: 60px; height: 100%;
+            pointer-events: none; 
+        }
+        .peg {
+            pointer-events: auto; position: absolute; left: 10px;
+            background: #222; border: 2px solid #555; color: #ccc;
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; cursor: pointer; font-size: 0.8rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.1s;
+        }
+        .peg:active { transform: scale(0.9); background: #444; }
+        .disabled-peg { 
+            background: transparent; border: none; box-shadow: none; 
+            pointer-events: none; color: #888; font-size: 0.9rem;
+        }
+
+        .zoom-controls {
+            position: absolute; right: 10px; bottom: 10px;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .zoom-controls button { width: 35px; height: 35px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; background: rgba(40, 40, 40, 0.7); border:none; color: #aaa;}
+        .zoom-controls button:hover { color: #fff; background: rgba(60, 60, 60, 0.8); }
+
+        /* --- 3. Dictionnaire (Onglets & Grille - A Droite) --- */
+        #dictionary-zone {
+            width: 320px; background: #222; border-left: 2px solid #444;
+            display: flex; flex-direction: column; flex-shrink: 0;
+            transition: width 0.3s;
+        }
+        
+        .tabs { display: flex; background: #1a1a1a; }
+        .tab {
+            flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: bold;
+            background: #222; color: #888; border-bottom: 2px solid transparent;
+        }
+        .tab.active { color: #4da6ff; border-bottom-color: #4da6ff; background: #2a2a2a; }
+
+        .grid-header {
+            padding: 8px 10px; background: #2a2a2a; display: flex; 
+            justify-content: space-between; align-items: center; font-size: 0.85rem;
+            border-bottom: 1px solid #333; gap: 5px;
+        }
+
+        #dictionary-grid {
+            flex-grow: 1; overflow-y: auto; padding: 10px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px; align-content: start;
+        }
+
+        .dict-item {
+            background: #333; padding: 10px; border-radius: 6px; font-size: 0.85rem;
+            cursor: pointer; border: 1px solid transparent; transition: all 0.1s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .dict-item:hover { background: #3a3a3a; }
+        .dict-item.active { border-color: #4da6ff; background: #1f3a52; color: #fff; }
+        .dict-item.active-chord { border-color: #ff4d4d; background: #4d1f1f; color: #fff; }
+        .dict-item-badge { font-size: 0.7rem; background: #555; padding: 2px 5px; border-radius: 3px; }
+        .dict-item.disabled { opacity: 0.3; pointer-events: none; background: #222; }
+        .chord-qualifier { font-size: 0.8rem; color: #ffb84d; font-weight: bold;}
+        
+        .dict-group-header {
+            grid-column: 1 / -1; font-weight: bold; color: #ffb84d; 
+            border-bottom: 1px solid #444; padding-bottom: 4px; margin-top: 8px;
+        }
+
+        /* --- Chord Builder (Recherche) --- */
+        #chord-builder {
+            display: none; flex-direction: column; flex-grow: 1; padding: 10px; overflow-y: auto;
+        }
+        .cb-roots {
+            display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #444;
+        }
+        .cb-root-btn {
+            flex-shrink: 0; width: 45px; height: 45px; border-radius: 50%;
+            background: #333; color: white; border: 2px solid #555;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+        }
+        .cb-root-btn.active { background: #ffb84d; color: #000; border-color: #ffb84d; }
+        
+        .cb-qualities {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 10px; margin-top: 15px;
+        }
+        .cb-qual-btn {
+            background: #333; padding: 12px; border-radius: 6px; text-align: center;
+            cursor: pointer; border: 1px solid #555;
+        }
+        .cb-qual-btn:active { background: #555; }
+        .cb-qual-btn strong { color: #ffb84d; font-size: 1.1rem; }
+
+        /* --- Popup Modals --- */
+        #key-picker-modal, #scale-root-picker-modal, #tuning-presets-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #2a2a2a; padding: 20px; border-radius: 10px; border: 1px solid #555;
+            text-align: center; max-width: 90%; width: 350px; max-height: 90vh; overflow-y: auto;
+        }
+        .key-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .key-btn {
+            padding: 15px 0; font-size: 1.2rem; background: #1a1a1a; color: #ffb84d;
+            border: 1px solid #555; border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .key-btn:hover:not(.disabled) { background: #333; }
+        .key-btn.disabled { opacity: 0.2; pointer-events: none; }
+        .key-btn.active { background: #ffb84d; color: #000; border-color: #ffb84d; }
+        #btn-any-key { margin-top: 15px; width: 100%; padding: 12px; background: #4da6ff; color: #000; border: none; font-weight: bold;}
+
+        /* Styles spécifiques pour la liste d'accordages */
+        .tuning-preset-btn {
+            display: block; width: 100%; padding: 12px; margin-top: 8px;
+            background: #1a1a1a; color: #f0f0f0; border: 1px solid #555;
+            border-radius: 6px; cursor: pointer; text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .tuning-preset-btn:hover { background: #333; }
+        .tuning-preset-btn .tuning-notes { color: #aaa; font-size: 0.85rem; }
+
+        .instrument-selector {
+            display: flex; justify-content: space-around; flex-wrap: wrap; gap: 5px;
+            margin-bottom: 15px; border-bottom: 1px solid #555; padding-bottom: 10px;
+        }
+
+        .instrument-btn {
+            background: transparent; border: none; color: #aaa;
+            font-size: 1rem; cursor: pointer; padding: 5px 10px;
+        }
+        .instrument-btn.active {
+            color: #4da6ff; border-bottom: 2px solid #4da6ff; font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="orientation-warning">
+        📱 Veuillez tourner votre appareil en mode paysage pour utiliser l'application.
+    </div>
+
+    <div id="app">
+        <!-- En-tête -->
+        <header id="top-bar">
+            <div class="header-section">
+                <div class="dropdown">
+                    <button id="btn-app-mode">Mode: Exploration</button>
+                    <div class="dropdown-content">
+                        <a onclick="setAppMode('explore')">Mode: Exploration</a>
+                        <a onclick="setAppMode('search_notes')">Search: By Notes</a>
+                        <a onclick="setAppMode('search_intervals')">Search: By Intervals</a>
+                    </div>
+                </div>
+                <button id="btn-display-mode" title="Basculer Notes / Intervalles">Affichage : Notes</button>
+            </div>
+            <div class="header-center">
+                <h1 id="scale-name">...</h1>
+                <div id="formula-bar"></div>
+            </div>
+            <div class="header-section header-right">
+                <div style="display:flex; gap: 4px;">
+                    <button class="icon-btn" id="btn-split" title="Séparer la vue (2 instruments)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="12" x2="21" y2="12"></line></svg>
+                    </button>
+                    <button class="icon-btn" id="btn-toggle-dict" title="Afficher/Masquer le panneau">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                    <button class="icon-btn" id="btn-fullscreen" title="Plein écran">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                    </button>
+                </div>
+                <div style="display:flex; align-items:center; margin-left: 15px; gap: 5px;">
+                    <span style="font-size: 0.9rem; color: #aaa;">Tonalité:</span>
+                    <button id="btn-key">C</button>
+                </div>
+            </div>
+        </header>
+
+        <div id="main-content">
+            <!-- Zone Instruments (Multiples possibles) -->
+            <div id="instruments-wrapper">
+                <!-- Inst 0 -->
+                <main class="instrument-container" id="inst-container-0">
+                    <button class="btn-tuning-presets" onclick="openTuningPresetsPicker(0)" title="Instrument & Accordages">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </button>
+                    <div class="instrument-label" id="inst-label-0"></div>
+                    <canvas id="canvas-0"></canvas>
+                    <div class="tuning-pegs" id="pegs-0"></div>
+                    <div class="zoom-controls">
+                        <button onclick="zoomIn(0)">+</button>
+                        <button onclick="zoomOut(0)">-</button>
+                    </div>
+                </main>
+                <!-- Inst 1 (Split) -->
+                <main class="instrument-container" id="inst-container-1" style="display:none;">
+                    <button class="btn-tuning-presets" onclick="openTuningPresetsPicker(1)" title="Instrument & Accordages">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </button>
+                    <div class="instrument-label" id="inst-label-1"></div>
+                    <canvas id="canvas-1"></canvas>
+                    <div class="tuning-pegs" id="pegs-1"></div>
+                    <div class="zoom-controls">
+                        <button onclick="zoomIn(1)">+</button>
+                        <button onclick="zoomOut(1)">-</button>
+                    </div>
+                </main>
+            </div>
+
+            <!-- Dictionnaire (Onglets & Grille) -->
+            <footer id="dictionary-zone">
+                <div class="tabs">
+                    <div class="tab active" id="tab-scales" onclick="setDictTab('scales')">GAMMES</div>
+                    <div class="tab" id="tab-chords" onclick="setDictTab('chords')">ACCORDS</div>
+                </div>
+                <div class="grid-header">
+                    <strong id="dict-title">Dictionnaire</strong>
+                    <div style="display:flex; gap: 5px;">
+                        <button id="btn-filter-common" class="active-toggle" style="padding: 4px 8px;">Common</button>
+                    </div>
+                </div>
+                
+                <div id="dictionary-grid"></div>
+                
+                <div id="chord-builder">
+                    <div class="cb-roots" id="cb-roots"></div>
+                    <div class="cb-qualities" id="cb-qualities"></div>
+                </div>
+            </footer>
+        </div>
+
+        <!-- Modal Choix de Tonalité (Général / Corde) -->
+        <div id="key-picker-modal">
+            <div class="modal-content">
+                <h3 id="key-picker-title">Sélectionner la Tonalité</h3>
+                <div class="key-picker-grid" id="key-picker-grid"></div>
+                <button id="btn-any-key" class="key-btn">Toutes (Any)</button>
+                <button onclick="closeKeyPicker()" style="margin-top:10px; width:100%; background: #555;">Annuler</button>
+            </div>
+        </div>
+
+        <!-- Modal Choix de Tonalité Spécifique -->
+        <div id="scale-root-picker-modal">
+            <div class="modal-content">
+                <h3 id="scale-root-picker-title">Sélectionner la Tonalité</h3>
+                <div class="key-picker-grid" id="scale-root-picker-grid"></div>
+                <button onclick="document.getElementById('scale-root-picker-modal').style.display='none'" style="margin-top:15px; width:100%; background: #555;">Annuler</button>
+            </div>
+        </div>
+
+        <!-- Modal Accordages Prédéfinis -->
+        <div id="tuning-presets-modal">
+            <div class="modal-content">
+                <div class="instrument-selector">
+                    <button class="instrument-btn active" id="btn-inst-guitar" onclick="setInstrumentType('guitar')">Guitare</button>
+                    <button class="instrument-btn" id="btn-inst-bass" onclick="setInstrumentType('bass')">Basse</button>
+                    <button class="instrument-btn" id="btn-inst-ukulele" onclick="setInstrumentType('ukulele')">Ukulélé</button>
+                    <button class="instrument-btn" id="btn-inst-piano" onclick="setInstrumentType('piano')">Piano</button>
+                </div>
+                <h3 id="tuning-title">Accordages</h3>
+                <div id="tuning-presets-list" style="margin-top: 15px;">
+                    <!-- Rempli par JS -->
+                </div>
+                <button onclick="document.getElementById('tuning-presets-modal').style.display='none'" style="margin-top:15px; width:100%; background: #555;">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DONNÉES MUSICALES ---
+        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+        const ALL_INTERVALS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', '#5', '6', 'b7', '7'];
+        
+        const INTERVAL_SEMITONES = {
+            '1': 0, 'b2': 1, '2': 2, '#2': 3, 'b3': 3, '3': 4,
+            'b4': 4, '4': 5, '#4': 6, 'b5': 6, '5': 7, '#5': 8,
+            'b6': 8, '6': 9, 'bb7': 9, 'b7': 10, '7': 11,
+            'b9': 1, '9': 2, '#9': 3, '11': 5, '#11': 6,
+            'b13': 8, '13': 9
+        };
+
+        const TUNING_PRESETS = {
+            'guitar': [
+                { name: "Standard", notes: [4, 11, 7, 2, 9, 4] },
+                { name: "Drop D", notes: [4, 11, 7, 2, 9, 2] },
+                { name: "Double Drop D", notes: [2, 11, 7, 2, 9, 2] },
+                { name: "Open D", notes: [2, 9, 6, 2, 9, 2] },
+                { name: "Open G", notes: [2, 11, 7, 2, 7, 2] },
+                { name: "DADGAD", notes: [2, 9, 7, 2, 9, 2] },
+                { name: "Custom", notes: [4, 11, 7, 2, 9, 4] }
+            ],
+            'bass': [
+                { name: "Standard (4 cordes)", notes: [7, 2, 9, 4] },
+                { name: "Drop D (4 cordes)", notes: [7, 2, 9, 2] },
+                { name: "Standard (5 cordes)", notes: [7, 2, 9, 4, 11] },
+                { name: "Custom", notes: [7, 2, 9, 4] }
+            ],
+            'ukulele': [
+                { name: "Standard (Soprano/Concert)", notes: [9, 4, 0, 7] },
+                { name: "D Tuning", notes: [11, 6, 2, 9] },
+                { name: "Baryton", notes: [4, 11, 7, 2] },
+                { name: "Custom", notes: [9, 4, 0, 7] }
+            ]
+        };
+
+        const DEFAULT_SCALES_DB = [
+            { name: "Ionian (major)", intervals: "1, 3, 5, 7, 9, 11, 13", common: true },
+            { name: "Dorian", intervals: "1, b3, 5, b7, 9, 11, 13", common: true },
+            { name: "Phrygian", intervals: "1, b3, 5, b7, b9, 11, b13", common: true },
+            { name: "Lydian", intervals: "1, 3, 5, 7, 9, #11, 13", common: true },
+            { name: "Mixolydian", intervals: "1, 3, 5, b7, 9, 11, 13", common: true },
+            { name: "Aeolian (minor)", intervals: "1, b3, 5, b7, 9, 11, b13", common: true },
+            { name: "Locrian", intervals: "1, b3, b5, b7, b9, 11, b13", common: true },
+            { name: "Minor Pentatonic", intervals: "1, b3, 5, b7, 11", common: true },
+            { name: "Major Pentatonic", intervals: "1, 3, 5, 9, 13", common: true },
+            { name: "Harmonic minor", intervals: "1, b3, 5, 7, 9, 11, b13", common: true },
+            { name: "Melodic minor", intervals: "1, b3, 5, 7, 9, 11, 13", common: true },
+            { name: "Blues pentatonic", intervals: "1, b3, 4, 5, b7, 11", common: true },
+            { name: "Whole tone", intervals: "1, 3, #5, b7, 9, #11", common: false },
+            { name: "Hirajoshi", intervals: "1, b3, 5, 9, b13", common: false }
+        ];
+
+        let SCALES_DB = [];
+
+        const CHORD_FORMULAS = [
+            { name: "Major", qualifiers: ["Maj", "", "M"], intervals: "1, 3, 5", common: true },
+            { name: "Minor", qualifiers: ["m", "min", "-", "MI"], intervals: "1, b3, 5", common: true },
+            { name: "Diminished", qualifiers: ["dim", "°"], intervals: "1, b3, b5", common: true },
+            { name: "Augmented", qualifiers: ["Aug", "+"], intervals: "1, 3, #5", common: true },
+            { name: "sus2", qualifiers: ["sus2"], intervals: "1, 2, 5", common: true },
+            { name: "sus4", qualifiers: ["sus4"], intervals: "1, 4, 5", common: true },
+            { name: "Major 7", qualifiers: ["maj7", "Δ"], intervals: "1, 3, 5, 7", common: true },
+            { name: "Minor 7", qualifiers: ["m7", "min7"], intervals: "1, b3, 5, b7", common: true },
+            { name: "Dominant 7", qualifiers: ["7"], intervals: "1, 3, 5, b7", common: true },
+            { name: "Minor 7b5", qualifiers: ["m7b5", "ø"], intervals: "1, b3, b5, b7", common: false },
+            { name: "Diminished 7", qualifiers: ["dim7", "°7"], intervals: "1, b3, b5, 6", common: false },
+            { name: "Minor Maj 7", qualifiers: ["m(maj7)"], intervals: "1, b3, 5, 7", common: false },
+            { name: "Dominant 9", qualifiers: ["9"], intervals: "1, 3, 5, b7, 9", common: false },
+            { name: "Major 9", qualifiers: ["maj9"], intervals: "1, 3, 5, 7, 9", common: false },
+            { name: "Minor 9", qualifiers: ["m9"], intervals: "1, b3, 5, b7, 9", common: false }
+        ];
+
+        function calculateProfile(item) {
+             const intervals = item.intervals.split(',').map(i => i.trim());
+             let profile = 0;
+             intervals.forEach(interval => {
+                 const semitones = INTERVAL_SEMITONES[interval];
+                 if (semitones !== undefined) profile |= (1 << semitones);
+             });
+             item.profile = profile;
+        }
+        CHORD_FORMULAS.forEach(calculateProfile);
+
+        // --- GESTION DE LA MISE EN VEILLE (WAKE LOCK) ---
+        let wakeLock = null;
+        const requestWakeLock = async () => {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => { console.log('Wake Lock relâché'); });
+                }
+            } catch (err) {
+                console.log(`Wake Lock API: ${err.name}, ${err.message}`);
+            }
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+        });
+
+        // --- INITIALISATION DES GAMMES VIA JSON FETCH ---
+        async function initScalesDB() {
+            try {
+                const response = await fetch('scales.json');
+                if (!response.ok) throw new Error("Fichier introuvable");
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    SCALES_DB = data.filter(s => s.name && s.intervals);
+                } else {
+                    throw new Error("Format JSON invalide");
+                }
+            } catch (err) {
+                console.info("Info: Utilisation des gammes par défaut (scales.json non trouvé ou invalide).");
+                SCALES_DB = JSON.parse(JSON.stringify(DEFAULT_SCALES_DB));
+            }
+            SCALES_DB.forEach(calculateProfile);
+        }
+
+        // --- ÉTAT DE L'APPLICATION ---
+        const AppState = {
+            currentKey: 0, 
+            searchKey: null, 
+            currentScale: null, 
+            currentChordRoot: null, 
+            currentChordFormula: null, 
+            displayMode: 'notes', 
+            appMode: 'explore', 
+            dictTab: 'scales', 
+            showOnlyCommon: true,
+            selectedNotesSet: new Set(), 
+            selectedIntervalsSet: new Set(),
+            cbSelectedRoot: 0,
+            
+            splitMode: false,
+            dictVisible: true,
+            instrumentsData: [
+                { type: 'guitar', tuningName: 'Standard', tuning: [...TUNING_PRESETS['guitar'][0].notes] },
+                { type: 'piano', tuningName: '', tuning: [] } 
+            ],
+            
+            activeInstrumentMenuIndex: 0,
+            tuningStringIndex: null, 
+            
+            getActiveNotes() {
+                if (this.appMode === 'search_notes') {
+                    return Array.from(this.selectedNotesSet).map(index => ({ index: index, interval: '?', isRoot: false, isChordNote: false }));
+                } else if (this.appMode === 'search_intervals') {
+                     let activeNotes = [];
+                     this.selectedIntervalsSet.forEach(interval => {
+                         const semitones = INTERVAL_SEMITONES[interval];
+                         if (semitones !== undefined) {
+                             const noteIndex = (this.currentKey + semitones) % 12;
+                             activeNotes.push({ index: noteIndex, interval: interval, isRoot: interval === '1', isChordNote: false });
+                         }
+                     });
+                     return activeNotes;
+                }
+
+                if (!this.currentScale) return [];
+                const scaleIntervals = this.currentScale.intervals.split(',').map(i => i.trim());
+                let activeNotes = [];
+                
+                scaleIntervals.forEach(interval => {
+                    const semitones = INTERVAL_SEMITONES[interval];
+                    if (semitones !== undefined) {
+                        const noteIndex = (this.currentKey + semitones) % 12;
+                        activeNotes.push({ index: noteIndex, interval: interval, isRoot: interval === '1', isChordNote: false });
+                    }
+                });
+
+                if (this.dictTab === 'chords' && this.currentChordFormula !== null && this.currentChordRoot !== null) {
+                    const chordIntervals = this.currentChordFormula.intervals.split(',').map(i => i.trim());
+                    chordIntervals.forEach(interval => {
+                         const semitones = INTERVAL_SEMITONES[interval];
+                         if (semitones !== undefined) {
+                             const chordNoteIndex = (this.currentChordRoot + semitones) % 12;
+                             const existing = activeNotes.find(n => n.index === chordNoteIndex);
+                             if (existing) {
+                                 existing.isChordNote = true;
+                                 if (interval === '1') existing.isChordRoot = true;
+                             }
+                         }
+                    });
+                }
+                return activeNotes;
+            },
+
+            getSearchProfile() {
+                let profile = 0;
+                this.selectedNotesSet.forEach(noteIndex => { profile |= (1 << noteIndex); });
+                return profile;
+            }
+        };
+
+        // --- LOCAL STORAGE ---
+        function saveState() {
+            const state = {
+                currentKey: AppState.currentKey,
+                currentScaleName: AppState.currentScale ? AppState.currentScale.name : null,
+                displayMode: AppState.displayMode,
+                appMode: AppState.appMode,
+                dictTab: AppState.dictTab,
+                showOnlyCommon: AppState.showOnlyCommon,
+                splitMode: AppState.splitMode,
+                dictVisible: AppState.dictVisible,
+                instrumentsData: AppState.instrumentsData
+            };
+            try { localStorage.setItem('showMeScales_State', JSON.stringify(state)); } catch(e) {}
+        }
+
+        function loadState() {
+            try {
+                const savedStr = localStorage.getItem('showMeScales_State');
+                if (savedStr) {
+                    const saved = JSON.parse(savedStr);
+                    AppState.currentKey = saved.currentKey || 0;
+                    AppState.displayMode = saved.displayMode || 'notes';
+                    AppState.appMode = saved.appMode || 'explore';
+                    AppState.dictTab = saved.dictTab || 'scales';
+                    AppState.showOnlyCommon = saved.showOnlyCommon !== undefined ? saved.showOnlyCommon : true;
+                    AppState.splitMode = saved.splitMode || false;
+                    AppState.dictVisible = saved.dictVisible !== undefined ? saved.dictVisible : true;
+                    
+                    if (saved.instrumentsData && saved.instrumentsData.length === 2) {
+                        AppState.instrumentsData = saved.instrumentsData;
+                    }
+                    
+                    if (saved.currentScaleName) {
+                        const found = SCALES_DB.find(s => s.name === saved.currentScaleName);
+                        AppState.currentScale = found || SCALES_DB[0];
+                    } else { AppState.currentScale = SCALES_DB[0]; }
+                } else {
+                    AppState.currentScale = SCALES_DB[0];
+                }
+            } catch(e) { AppState.currentScale = SCALES_DB[0]; }
+        }
+
+        // --- ARCHITECTURE INSTRUMENT ---
+        const instrumentInstances = [null, null];
+
+        class BaseInstrument {
+            constructor(containerId, index) {
+                this.index = index;
+                this.container = document.getElementById(containerId);
+                this.canvas = this.container.querySelector('canvas');
+                this.ctx = this.canvas.getContext('2d', { alpha: false });
+                this.pegsContainer = this.container.querySelector('.tuning-pegs');
+                this.labelContainer = this.container.querySelector('.instrument-label');
+                
+                this.camera = { x: 0, y: 0, zoom: 1 };
+                this.isDragging = false;
+                this.lastPointer = { x: 0, y: 0 };
+                this.clickStartPos = { x:0, y:0 };
+                
+                this._bindEvents();
+            }
+            
+            _bindEvents() {
+                this.canvas.style.touchAction = 'none';
+
+                this.handlePointerDown = (clientX, clientY) => {
+                    this.isDragging = true;
+                    this.lastPointer = { x: clientX, y: clientY };
+                    this.clickStartPos = { x: clientX, y: clientY };
+                };
+
+                this.handlePointerMove = (clientX, clientY) => {
+                    if (!this.isDragging) return;
+                    this.camera.x += (clientX - this.lastPointer.x) / this.camera.zoom;
+                    this.camera.y += (clientY - this.lastPointer.y) / this.camera.zoom;
+                    this.lastPointer = { x: clientX, y: clientY };
+                    this.draw();
+                };
+
+                this.handlePointerUp = (clientX, clientY) => {
+                    if (!this.isDragging) return;
+                    this.isDragging = false;
+                    const dx = clientX - this.clickStartPos.x;
+                    const dy = clientY - this.clickStartPos.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < 5) {
+                        this.handleClick(clientX, clientY);
+                    }
+                };
+
+                // Événements Souris (Mouse)
+                this.onMouseDown = (e) => { this.handlePointerDown(e.clientX, e.clientY); };
+                this.onMouseMove = (e) => { this.handlePointerMove(e.clientX, e.clientY); };
+                this.onMouseUp = (e) => { this.handlePointerUp(e.clientX, e.clientY); };
+
+                // Événements Tactiles (Touch)
+                this.onTouchStart = (e) => {
+                    if (e.touches.length === 1) {
+                        this.handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                };
+                this.onTouchMove = (e) => {
+                    if (this.isDragging && e.touches.length === 1) {
+                        e.preventDefault(); // Indispensable pour éviter le défilement de la page
+                        this.handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                };
+                this.onTouchEnd = (e) => {
+                    if (e.changedTouches.length === 1) {
+                        this.handlePointerUp(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                    } else {
+                        this.isDragging = false;
+                    }
+                };
+
+                // Attachement des débuts d'actions au canvas
+                this.canvas.addEventListener('mousedown', this.onMouseDown);
+                this.canvas.addEventListener('touchstart', this.onTouchStart, { passive: false });
+                
+                // Attachement des déplacements au canvas
+                this.canvas.addEventListener('touchmove', this.onTouchMove, { passive: false });
+                this.canvas.addEventListener('touchend', this.onTouchEnd);
+                this.canvas.addEventListener('touchcancel', this.onTouchEnd);
+
+                // Attachement du suivi souris à la fenêtre (permet de glisser en dehors du canvas)
+                window.addEventListener('mousemove', this.onMouseMove);
+                window.addEventListener('mouseup', this.onMouseUp);
+
+                // Gestion du zoom à la molette
+                this.handleWheel = (e) => {
+                    e.preventDefault();
+                    this.zoomAt(e.offsetX, e.offsetY, e.deltaY > 0 ? 0.9 : 1.1);
+                };
+                this.canvas.addEventListener('wheel', this.handleWheel, { passive: false });
+            }
+
+            destroy() {
+                // Nettoyage parfait lors du changement d'instrument
+                window.removeEventListener('mousemove', this.onMouseMove);
+                window.removeEventListener('mouseup', this.onMouseUp);
+                const newCanvas = this.canvas.cloneNode(false);
+                this.canvas.replaceWith(newCanvas);
+                this.canvas = newCanvas; 
+            }
+
+            resize() {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width * dpr; this.canvas.height = rect.height * dpr;
+                this.ctx.scale(dpr, dpr); this.width = rect.width; this.height = rect.height;
+                this.draw();
+            }
+
+            zoomAt(mouseX, mouseY, zoomDelta) {
+                const newZoom = Math.min(Math.max(0.3, this.camera.zoom * zoomDelta), 3);
+                this.camera.x = mouseX / newZoom - (mouseX / this.camera.zoom - this.camera.x);
+                this.camera.y = mouseY / newZoom - (mouseY / this.camera.zoom - this.camera.y);
+                this.camera.zoom = newZoom; this.draw();
+            }
+            zoomIn() { this.zoomAt(this.width/2, this.height/2, 1.2); }
+            zoomOut() { this.zoomAt(this.width/2, this.height/2, 0.8); }
+            screenToWorld(screenX, screenY) {
+                const rect = this.canvas.getBoundingClientRect();
+                return { x: ((screenX - rect.left) / this.camera.zoom) - this.camera.x, y: ((screenY - rect.top) / this.camera.zoom) - this.camera.y };
+            }
+            handleClick(screenX, screenY) {}
+            draw() { this.ctx.fillStyle = '#111'; this.ctx.fillRect(0, 0, this.width, this.height); }
+            setupTuningUI() {}
+        }
+
+        class FretboardInstrument extends BaseInstrument {
+            constructor(containerId, index) {
+                super(containerId, index);
+                this.tuning = AppState.instrumentsData[index].tuning; 
+                this.fretsCount = 24;
+                
+                this.scaleLength = 1600; 
+                this.nutSpacing = 32;    
+                this.bridgeSpacing = 48; 
+                
+                this.centerCamera();
+                this.setupTuningUI();
+            }
+
+            getFretX(f) {
+                if (f === 0) return 0;
+                return this.scaleLength - (this.scaleLength / Math.pow(2, f / 12));
+            }
+
+            getStringY(s, x) {
+                const N = this.tuning.length;
+                const yNut = (s - (N - 1) / 2) * this.nutSpacing;
+                const yBridge = (s - (N - 1) / 2) * this.bridgeSpacing;
+                return yNut + (x / this.scaleLength) * (yBridge - yNut);
+            }
+
+            centerCamera() {
+                this.camera.x = 80; 
+                this.camera.y = this.height / 2;
+                this.camera.zoom = 1;
+            }
+
+            setTuning(newTuningNotes) {
+                this.tuning = [...newTuningNotes];
+                AppState.instrumentsData[this.index].tuning = this.tuning;
+                this.centerCamera();
+                this.setupTuningUI();
+                this.draw();
+            }
+
+            setupTuningUI() {
+                this.pegsContainer.innerHTML = '';
+                const isCustom = AppState.instrumentsData[this.index].tuningName === 'Custom';
+                
+                this.tuning.forEach((noteIndex, stringIndex) => {
+                    let peg = document.createElement('div');
+                    peg.id = `peg-${this.index}-${stringIndex}`;
+                    
+                    if (isCustom) {
+                        peg.className = 'peg'; 
+                        peg.innerText = NOTES[noteIndex];
+                        peg.addEventListener('click', () => openKeyPicker(this.index, stringIndex));
+                    } else {
+                        peg.className = 'peg disabled-peg'; 
+                        peg.innerText = NOTES[noteIndex];
+                    }
+                    peg.style.position = 'absolute';
+                    peg.style.left = '10px';
+                    this.pegsContainer.appendChild(peg);
+                });
+
+                const iType = AppState.instrumentsData[this.index].type;
+                const iName = iType === 'guitar' ? 'Guit.' : iType === 'bass' ? 'Basse' : 'Uku.';
+                this.labelContainer.innerText = `${iName} - ${AppState.instrumentsData[this.index].tuningName}`;
+                this.labelContainer.style.display = 'block';
+            }
+
+            handleClick(screenX, screenY) {
+                if (AppState.appMode !== 'search_notes') return;
+                const worldPos = this.screenToWorld(screenX, screenY);
+                
+                let bestMatch = null;
+                let minDist = 400; 
+                
+                for (let s = 0; s < this.tuning.length; s++) {
+                    const stringBaseNote = this.tuning[s];
+                    for (let f = 0; f <= this.fretsCount; f++) {
+                        const x = f === 0 ? -15 : (this.getFretX(f) + this.getFretX(f-1)) / 2;
+                        const y = this.getStringY(s, x);
+                        
+                        const dx = worldPos.x - x;
+                        const dy = worldPos.y - y;
+                        const distSq = dx*dx + dy*dy;
+                        if (distSq < minDist) {
+                            minDist = distSq;
+                            bestMatch = { s, f, noteIndex: (stringBaseNote + f) % 12 };
+                        }
+                    }
+                }
+                
+                if (bestMatch) {
+                    const noteIndex = bestMatch.noteIndex;
+                    if (AppState.selectedNotesSet.has(noteIndex)) AppState.selectedNotesSet.delete(noteIndex);
+                    else AppState.selectedNotesSet.add(noteIndex);
+                    updateUI();
+                }
+            }
+            
+            draw() {
+                if (!this.tuning) return;
+                super.draw();
+                const ctx = this.ctx; const activeNotes = AppState.getActiveNotes();
+                ctx.save(); ctx.scale(this.camera.zoom, this.camera.zoom); ctx.translate(this.camera.x, this.camera.y);
+
+                const N = this.tuning.length;
+                const endX = this.getFretX(this.fretsCount);
+
+                ctx.fillStyle = '#2c1e16';
+                ctx.beginPath();
+                const yTopNut = this.getStringY(0, 0) - 15;
+                const yBotNut = this.getStringY(N-1, 0) + 15;
+                const yTopEnd = this.getStringY(0, endX) - 15;
+                const yBotEnd = this.getStringY(N-1, endX) + 15;
+                
+                ctx.moveTo(0, yTopNut); ctx.lineTo(endX, yTopEnd); ctx.lineTo(endX, yBotEnd); ctx.lineTo(0, yBotNut); ctx.fill();
+
+                const markers = [3, 5, 7, 9, 15, 17, 19, 21], doubleMarkers = [12, 24];
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                for(let i = 1; i <= this.fretsCount; i++) {
+                    const cx = (this.getFretX(i) + this.getFretX(i-1)) / 2;
+                    const cy = (this.getStringY(0, cx) + this.getStringY(N-1, cx)) / 2;
+                    if (markers.includes(i)) { 
+                        ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fill(); 
+                    } else if (doubleMarkers.includes(i)) { 
+                        const offset = (this.getStringY(N-1, cx) - this.getStringY(0, cx)) / 4;
+                        ctx.beginPath(); ctx.arc(cx, cy - offset, 8, 0, Math.PI * 2); ctx.fill();
+                        ctx.beginPath(); ctx.arc(cx, cy + offset, 8, 0, Math.PI * 2); ctx.fill(); 
+                    }
+                }
+
+                for (let i = 0; i <= this.fretsCount; i++) {
+                    const fx = this.getFretX(i);
+                    ctx.beginPath(); ctx.moveTo(fx, this.getStringY(0, fx) - 15); ctx.lineTo(fx, this.getStringY(N-1, fx) + 15);
+                    ctx.lineWidth = i === 0 ? 6 : 2; ctx.strokeStyle = i === 0 ? '#ddddcc' : '#888'; ctx.stroke();
+                }
+
+                for (let s = 0; s < N; s++) {
+                    ctx.beginPath(); ctx.moveTo(0, this.getStringY(s, 0)); ctx.lineTo(endX, this.getStringY(s, endX));
+                    ctx.lineWidth = 1 + (s * 0.4); ctx.strokeStyle = '#aaa'; ctx.stroke();
+                }
+
+                ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                for (let s = 0; s < N; s++) {
+                    const stringBaseNote = this.tuning[s];
+                    for (let f = 0; f <= this.fretsCount; f++) {
+                        const noteIndex = (stringBaseNote + f) % 12;
+                        const scaleNote = activeNotes.find(an => an.index === noteIndex);
+                        const x = f === 0 ? -15 : (this.getFretX(f) + this.getFretX(f-1)) / 2;
+                        const y = this.getStringY(s, x);
+
+                        if (scaleNote) {
+                            ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2);
+                            
+                            if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
+                                ctx.fillStyle = '#ff4d4d';
+                            } else {
+                                if (AppState.dictTab === 'chords' && scaleNote.isChordNote) {
+                                    ctx.fillStyle = scaleNote.isChordRoot ? '#d9534f' : '#ff4d4d';
+                                } else {
+                                    ctx.fillStyle = scaleNote.isRoot ? '#1f6eb8' : '#4da6ff'; 
+                                }
+                            }
+                            
+                            ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#222'; ctx.stroke();
+
+                            ctx.fillStyle = '#fff';
+                            if (AppState.appMode === 'explore' && AppState.dictTab === 'scales' && !scaleNote.isRoot) ctx.fillStyle = '#111';
+
+                            let text = NOTES[noteIndex];
+                            if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') text = scaleNote.interval !== '?' ? scaleNote.interval : text;
+                            ctx.fillText(text, x, y + 1);
+                        } else if (AppState.appMode === 'search_notes') {
+                            ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; ctx.fill();
+                        }
+                    }
+                }
+                ctx.restore();
+
+                if (this.pegsContainer) {
+                    for (let s = 0; s < N; s++) {
+                        const peg = document.getElementById(`peg-${this.index}-${s}`);
+                        if (peg) {
+                            const worldY = this.getStringY(s, -30); 
+                            const screenY = (worldY + this.camera.y) * this.camera.zoom;
+                            peg.style.top = `${screenY - 15}px`; 
+                        }
+                    }
+                }
+            }
+        }
+
+        class PianoInstrument extends BaseInstrument {
+            constructor(containerId, index) {
+                super(containerId, index);
+                this.octaves = 4;
+                this.startNote = 0; // C
+                this.whiteKeyWidth = 60;
+                this.whiteKeyHeight = 250;
+                this.blackKeyWidth = 36;
+                this.blackKeyHeight = 150;
+                this.centerCamera();
+                this.setupTuningUI();
+            }
+
+            centerCamera() {
+                const totalWidth = this.octaves * 7 * this.whiteKeyWidth;
+                this.camera.x = (this.width / 2) - (totalWidth / 2);
+                this.camera.y = (this.height / 2) - (this.whiteKeyHeight / 2);
+                this.camera.zoom = 1;
+            }
+
+            setupTuningUI() {
+                this.pegsContainer.innerHTML = '';
+                this.labelContainer.innerText = 'Piano';
+                this.labelContainer.style.display = 'block';
+            }
+
+            getKeyLayout() {
+                let layout = [];
+                const octavePattern = [
+                    { note: 0, type: 'white', wIndex: 0 },
+                    { note: 1, type: 'black', wCenter: 1 }, 
+                    { note: 2, type: 'white', wIndex: 1 },
+                    { note: 3, type: 'black', wCenter: 2 },
+                    { note: 4, type: 'white', wIndex: 2 },
+                    { note: 5, type: 'white', wIndex: 3 },
+                    { note: 6, type: 'black', wCenter: 4 },
+                    { note: 7, type: 'white', wIndex: 4 },
+                    { note: 8, type: 'black', wCenter: 5 },
+                    { note: 9, type: 'white', wIndex: 5 },
+                    { note: 10, type: 'black', wCenter: 6 },
+                    { note: 11, type: 'white', wIndex: 6 }
+                ];
+
+                for (let o = 0; o < this.octaves; o++) {
+                    const octaveOffsetX = o * 7 * this.whiteKeyWidth; 
+                    octavePattern.forEach(p => {
+                        const noteIndex = (this.startNote + p.note) % 12;
+                        if (p.type === 'white') {
+                            layout.push({
+                                note: noteIndex, type: 'white',
+                                x: octaveOffsetX + p.wIndex * this.whiteKeyWidth, y: 0,
+                                w: this.whiteKeyWidth, h: this.whiteKeyHeight
+                            });
+                        } else {
+                            layout.push({
+                                note: noteIndex, type: 'black',
+                                x: octaveOffsetX + p.wCenter * this.whiteKeyWidth - this.blackKeyWidth / 2, y: 0,
+                                w: this.blackKeyWidth, h: this.blackKeyHeight
+                            });
+                        }
+                    });
+                }
+                return layout;
+            }
+
+            handleClick(screenX, screenY) {
+                if (AppState.appMode !== 'search_notes') return;
+                const worldPos = this.screenToWorld(screenX, screenY);
+                const layout = this.getKeyLayout();
+
+                let clickedNote = null;
+                for (let i = layout.length - 1; i >= 0; i--) {
+                    let k = layout[i];
+                    if (k.type === 'black' && worldPos.x >= k.x && worldPos.x <= k.x + k.w && worldPos.y >= k.y && worldPos.y <= k.y + k.h) {
+                        clickedNote = k.note; break;
+                    }
+                }
+                
+                if (clickedNote === null) {
+                    for (let i = layout.length - 1; i >= 0; i--) {
+                        let k = layout[i];
+                        if (k.type === 'white' && worldPos.x >= k.x && worldPos.x <= k.x + k.w && worldPos.y >= k.y && worldPos.y <= k.y + k.h) {
+                            clickedNote = k.note; break;
+                        }
+                    }
+                }
+
+                if (clickedNote !== null) {
+                    if (AppState.selectedNotesSet.has(clickedNote)) AppState.selectedNotesSet.delete(clickedNote);
+                    else AppState.selectedNotesSet.add(clickedNote);
+                    updateUI();
+                }
+            }
+
+            draw() {
+                super.draw();
+                const ctx = this.ctx; const activeNotes = AppState.getActiveNotes();
+                ctx.save(); ctx.scale(this.camera.zoom, this.camera.zoom); ctx.translate(this.camera.x, this.camera.y);
+
+                const layout = this.getKeyLayout();
+
+                layout.filter(k => k.type === 'white').forEach(k => {
+                    ctx.fillStyle = '#f5f5f5'; ctx.fillRect(k.x, k.y, k.w, k.h);
+                    ctx.strokeStyle = '#222'; ctx.lineWidth = 1; ctx.strokeRect(k.x, k.y, k.w, k.h);
+                });
+
+                layout.filter(k => k.type === 'black').forEach(k => {
+                    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(k.x, k.y, k.w, k.h);
+                    ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(k.x, k.y, k.w, k.h);
+                });
+
+                ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                layout.forEach(k => {
+                    const scaleNote = activeNotes.find(an => an.index === k.note);
+                    const cx = k.x + k.w / 2;
+                    const cy = k.type === 'black' ? k.h - 30 : k.h - 40;
+
+                    if (scaleNote) {
+                        ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+
+                        if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
+                            ctx.fillStyle = '#ff4d4d';
+                        } else {
+                            if (AppState.dictTab === 'chords' && scaleNote.isChordNote) {
+                                ctx.fillStyle = scaleNote.isChordRoot ? '#d9534f' : '#ff4d4d';
+                            } else {
+                                ctx.fillStyle = scaleNote.isRoot ? '#1f6eb8' : '#4da6ff';
+                            }
+                        }
+                        ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#222'; ctx.stroke();
+
+                        ctx.fillStyle = '#fff';
+                        if (AppState.appMode === 'explore' && AppState.dictTab === 'scales' && !scaleNote.isRoot) ctx.fillStyle = '#111';
+
+                        let text = NOTES[k.note];
+                        if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') text = scaleNote.interval !== '?' ? scaleNote.interval : text;
+                        ctx.fillText(text, cx, cy + 1);
+                    } else if (AppState.appMode === 'search_notes') {
+                        ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+                        ctx.fillStyle = k.type === 'black' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                        ctx.fill();
+                    }
+                });
+
+                ctx.restore();
+            }
+        }
+
+        function buildInstrument(index) {
+            const data = AppState.instrumentsData[index];
+            if (instrumentInstances[index]) instrumentInstances[index].destroy();
+
+            if (data.type === 'piano') {
+                instrumentInstances[index] = new PianoInstrument(`inst-container-${index}`, index);
+            } else {
+                instrumentInstances[index] = new FretboardInstrument(`inst-container-${index}`, index);
+            }
+        }
+
+        // --- THÉORIE MUSICALE : HARMONISATION ---
+        function getHarmonizedChords(scaleProfile, rootKey) {
+            let scaleNotes = [];
+            for(let i=0; i<12; i++) {
+                if ((scaleProfile & (1 << i)) !== 0) scaleNotes.push((rootKey + i) % 12);
+            }
+            
+            let sortedNotes = [];
+            for(let i=0; i<12; i++) {
+                let n = (rootKey + i) % 12;
+                if (scaleNotes.includes(n)) sortedNotes.push(n);
+            }
+
+            let harmonized = [];
+            sortedNotes.forEach((rootNote, degreeIndex) => {
+                let degreeChords = [];
+                const isCommonFilter = AppState.showOnlyCommon;
+                
+                CHORD_FORMULAS.forEach(formula => {
+                    if (isCommonFilter && !formula.common) return;
+
+                    let isMatch = true;
+                    for(let i=0; i<12; i++) {
+                        if ((formula.profile & (1 << i)) !== 0) {
+                            let chordNote = (rootNote + i) % 12;
+                            if (!scaleNotes.includes(chordNote)) { isMatch = false; break; }
+                        }
+                    }
+                    if (isMatch) {
+                        degreeChords.push({ rootNote: rootNote, formula: formula, degreeStr: ROMAN_NUMERALS[degreeIndex] });
+                    }
+                });
+                
+                if (degreeChords.length > 0) harmonized.push({ rootNote: rootNote, degreeStr: ROMAN_NUMERALS[degreeIndex], chords: degreeChords });
+            });
+            return harmonized;
+        }
+
+        // --- MOTEUR DE RECHERCHE INVERSÉE ---
+        function isScaleMatchingSelection(searchProfile, scaleProfile, rootOffset) {
+            if (searchProfile === 0) return true; 
+            let shiftedScaleProfile = (scaleProfile | (scaleProfile << 12)) >> (12 - rootOffset);
+            shiftedScaleProfile = shiftedScaleProfile & 0xFFF;
+            return (searchProfile & shiftedScaleProfile) === searchProfile;
+        }
+
+        function getValidKeysForScale(searchProfile, scaleProfile) {
+            let validKeys = [];
+            for (let k = 0; k < 12; k++) {
+                if (isScaleMatchingSelection(searchProfile, scaleProfile, k)) validKeys.push(k);
+            }
+            return validKeys;
+        }
+
+        function isScaleMatchingIntervals(selectedIntervals, scaleIntervalsStr) {
+            if (selectedIntervals.size === 0) return true;
+            const scaleSemitones = scaleIntervalsStr.split(',').map(i => INTERVAL_SEMITONES[i.trim()]);
+            for (let selectedInterval of selectedIntervals) {
+                if (!scaleSemitones.includes(INTERVAL_SEMITONES[selectedInterval])) return false;
+            }
+            return true;
+        }
+
+        // --- CONTRÔLEUR UI ---
+        function toggleSplitMode() {
+            AppState.splitMode = !AppState.splitMode;
+            document.getElementById('inst-container-1').style.display = AppState.splitMode ? 'flex' : 'none';
+            document.getElementById('btn-split').classList.toggle('active', AppState.splitMode);
+            
+            instrumentInstances.forEach(inst => { if(inst) inst.resize(); });
+            updateUI();
+        }
+
+        function toggleDictPanel() {
+            AppState.dictVisible = !AppState.dictVisible;
+            const dict = document.getElementById('dictionary-zone');
+            const btn = document.getElementById('btn-toggle-dict');
+            if (AppState.dictVisible) {
+                dict.style.width = '320px';
+                dict.style.borderLeft = '2px solid #444';
+                dict.style.padding = '';
+                btn.classList.remove('active');
+            } else {
+                dict.style.width = '0';
+                dict.style.borderLeft = 'none';
+                dict.style.padding = '0';
+                btn.classList.add('active');
+            }
+            setTimeout(() => { instrumentInstances.forEach(inst => { if(inst) inst.resize(); }); }, 300);
+            saveState();
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Erreur lors du passage en plein écran: ${err.message}`);
+                });
+                document.getElementById('btn-fullscreen').classList.add('active');
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                document.getElementById('btn-fullscreen').classList.remove('active');
+            }
+        }
+
+        function setAppMode(mode) {
+            AppState.appMode = mode;
+            if (mode !== 'search_notes') AppState.selectedNotesSet.clear();
+            if (mode !== 'search_intervals') AppState.selectedIntervalsSet.clear();
+            
+            if (mode === 'explore' && AppState.dictTab === 'chords') {
+                AppState.currentChordRoot = null; AppState.currentChordFormula = null;
+            }
+            updateUI();
+        }
+
+        function setDictTab(tabName) {
+            AppState.dictTab = tabName;
+            document.getElementById('tab-scales').className = tabName === 'scales' ? 'tab active' : 'tab';
+            document.getElementById('tab-chords').className = tabName === 'chords' ? 'tab active' : 'tab';
+            
+            if (tabName === 'chords' && AppState.appMode === 'explore') {
+                AppState.currentChordRoot = null; AppState.currentChordFormula = null;
+            }
+            updateUI();
+        }
+
+        function toggleIntervalSelection(interval) {
+            if (AppState.appMode !== 'search_intervals') return;
+            if (AppState.selectedIntervalsSet.has(interval)) AppState.selectedIntervalsSet.delete(interval);
+            else AppState.selectedIntervalsSet.add(interval);
+            updateUI();
+        }
+
+        function toggleChordInSearch(rootIndex, formulaProfile) {
+            let activeSemitones = [];
+            for(let i=0; i<12; i++) {
+                if ((formulaProfile & (1 << i)) !== 0) {
+                    activeSemitones.push((rootIndex + i) % 12);
+                }
+            }
+            
+            let allPresent = activeSemitones.every(note => AppState.selectedNotesSet.has(note));
+            activeSemitones.forEach(note => {
+                if (allPresent) AppState.selectedNotesSet.delete(note);
+                else AppState.selectedNotesSet.add(note);
+            });
+            updateUI();
+        }
+
+        function updateUI() {
+            const btnAppMode = document.getElementById('btn-app-mode');
+            const btnKey = document.getElementById('btn-key');
+            const formulaBar = document.getElementById('formula-bar');
+            const scaleName = document.getElementById('scale-name');
+            const dictTitle = document.getElementById('dict-title');
+            const grid = document.getElementById('dictionary-grid');
+            const chordBuilder = document.getElementById('chord-builder');
+            
+            formulaBar.className = ''; 
+            formulaBar.innerHTML = '';
+            
+            if (AppState.appMode === 'explore') {
+                btnAppMode.innerText = "Mode: Exploration";
+                btnAppMode.className = "";
+                
+                let titleText = AppState.currentScale ? AppState.currentScale.name : '...';
+                if (AppState.dictTab === 'chords' && AppState.currentChordFormula) {
+                    titleText += ` • ${NOTES[AppState.currentChordRoot]}${AppState.currentChordFormula.qualifiers[0]}`;
+                }
+                
+                scaleName.innerHTML = titleText;
+                scaleName.style.display = "block";
+                formulaBar.style.display = "flex";
+                dictTitle.innerText = AppState.dictTab === 'scales' ? "Dictionnaire de Gammes" : `Harmonisation (${NOTES[AppState.currentKey]} ${AppState.currentScale ? AppState.currentScale.name : ''})`;
+                btnKey.innerText = NOTES[AppState.currentKey];
+                
+                if (AppState.currentScale) {
+                    AppState.currentScale.intervals.split(',').forEach(interval => {
+                        const i = interval.trim();
+                        const span = document.createElement('span');
+                        span.className = 'interval-badge' + (i === '1' ? ' root' : '');
+                        span.innerText = i;
+                        formulaBar.appendChild(span);
+                    });
+                }
+
+                grid.style.display = 'grid';
+                chordBuilder.style.display = 'none';
+                renderDictionaryGrid();
+
+            } else if (AppState.appMode === 'search_notes') {
+                btnAppMode.innerText = "Search: By Notes";
+                btnAppMode.className = "search-mode-active";
+                scaleName.innerHTML = "Recherche par notes";
+                scaleName.style.display = "block";
+                formulaBar.style.display = "none";
+                
+                const noteCount = AppState.selectedNotesSet.size;
+                dictTitle.innerText = AppState.dictTab === 'scales' ? `Résultats (${noteCount} note${noteCount > 1 ? 's' : ''})` : "Ajouter un accord à la recherche";
+                btnKey.innerText = AppState.searchKey === null ? "Any" : NOTES[AppState.searchKey];
+
+                if (AppState.dictTab === 'scales') {
+                    grid.style.display = 'grid';
+                    chordBuilder.style.display = 'none';
+                    renderDictionaryGrid();
+                } else {
+                    grid.style.display = 'none';
+                    chordBuilder.style.display = 'flex';
+                    renderChordBuilder();
+                }
+
+            } else if (AppState.appMode === 'search_intervals') {
+                btnAppMode.innerText = "Search: By Intervals";
+                btnAppMode.className = "search-mode-active";
+                scaleName.innerHTML = "Recherche par intervalles";
+                scaleName.style.display = "block"; 
+                formulaBar.style.display = "flex";
+                formulaBar.className = 'interactive';
+                
+                const intCount = AppState.selectedIntervalsSet.size;
+                dictTitle.innerText = `Résultats (${intCount} intervalle${intCount > 1 ? 's' : ''})`;
+                btnKey.innerText = NOTES[AppState.currentKey]; 
+                
+                ALL_INTERVALS.forEach(interval => {
+                    const span = document.createElement('span');
+                    span.className = 'interval-badge' + (interval === '1' ? ' root' : '');
+                    if (AppState.selectedIntervalsSet.has(interval)) span.classList.add('selected');
+                    span.innerText = interval === '1' ? 'R' : interval;
+                    span.onclick = () => toggleIntervalSelection(interval);
+                    formulaBar.appendChild(span);
+                });
+
+                if (AppState.dictTab === 'chords') setDictTab('scales');
+
+                grid.style.display = 'grid';
+                chordBuilder.style.display = 'none';
+                renderDictionaryGrid();
+            }
+            
+            const btnMode = document.getElementById('btn-display-mode');
+            btnMode.innerText = AppState.displayMode === 'notes' ? 'Affichage : Notes' : 'Affichage : Intervalles';
+            btnMode.className = AppState.displayMode === 'notes' ? '' : 'active-toggle';
+
+            instrumentInstances.forEach(inst => { if(inst) inst.draw(); });
+            saveState(); // Auto-save after UI updates
+        }
+
+        function renderDictionaryGrid() {
+            const grid = document.getElementById('dictionary-grid');
+            grid.innerHTML = '';
+
+            if (AppState.appMode === 'explore' && AppState.dictTab === 'chords' && AppState.currentScale) {
+                const harmonized = getHarmonizedChords(AppState.currentScale.profile, AppState.currentKey);
+                
+                harmonized.forEach(group => {
+                    const groupHeader = document.createElement('div');
+                    groupHeader.className = 'dict-group-header';
+                    groupHeader.innerText = `Degré ${group.degreeStr} (${NOTES[group.rootNote]})`;
+                    grid.appendChild(groupHeader);
+
+                    group.chords.forEach(chord => {
+                        const domItem = document.createElement('div');
+                        domItem.className = 'dict-item';
+                        if (AppState.currentChordFormula === chord.formula && AppState.currentChordRoot === chord.rootNote) {
+                            domItem.classList.add('active-chord');
+                        }
+
+                        domItem.innerHTML = `
+                            <div>
+                                <strong>${NOTES[chord.rootNote]}</strong><span class="chord-qualifier">${chord.formula.qualifiers[0]}</span>
+                                <div style="font-size:0.7rem; color:#aaa">${chord.formula.name}</div>
+                            </div>
+                            <span class="dict-item-badge">${chord.formula.intervals.split(',').length} notes</span>
+                        `;
+                        domItem.onclick = () => {
+                            AppState.currentChordRoot = chord.rootNote;
+                            AppState.currentChordFormula = chord.formula;
+                            updateUI();
+                        };
+                        grid.appendChild(domItem);
+                    });
+                });
+                return; 
+            }
+
+            const filteredScales = AppState.showOnlyCommon ? SCALES_DB.filter(item => item.common) : SCALES_DB;
+            const searchProfile = AppState.getSearchProfile();
+
+            filteredScales.forEach(scale => {
+                let isMatch = true;
+                let subtitleStr = "";
+
+                if (AppState.appMode === 'search_notes' && AppState.selectedNotesSet.size > 0) {
+                    if (AppState.searchKey !== null) {
+                        isMatch = isScaleMatchingSelection(searchProfile, scale.profile, AppState.searchKey);
+                        if (isMatch) subtitleStr = " in " + NOTES[AppState.searchKey];
+                    } else {
+                        const validKeys = getValidKeysForScale(searchProfile, scale.profile);
+                        isMatch = validKeys.length > 0;
+                        if (isMatch) {
+                            if (validKeys.length > 3) subtitleStr = " in " + validKeys.length + " keys";
+                            else subtitleStr = " in " + validKeys.map(k => NOTES[k]).join(', ');
+                        }
+                    }
+                } else if (AppState.appMode === 'search_intervals' && AppState.selectedIntervalsSet.size > 0) {
+                    isMatch = isScaleMatchingIntervals(AppState.selectedIntervalsSet, scale.intervals);
+                    if (isMatch) subtitleStr = " in " + NOTES[AppState.currentKey];
+                } else if (AppState.appMode === 'explore') {
+                     subtitleStr = " in " + NOTES[AppState.currentKey];
+                }
+
+                const domItem = document.createElement('div');
+                domItem.className = 'dict-item';
+                if (!isMatch) domItem.classList.add('disabled');
+                if (AppState.appMode === 'explore' && AppState.currentScale && scale.name === AppState.currentScale.name) domItem.classList.add('active');
+
+                domItem.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:flex-start; overflow: hidden;">
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100px;">${scale.name}</span>
+                        <span style="font-size: 0.7rem; color:#aaa">${isMatch ? subtitleStr : ''}</span>
+                    </div>
+                    <span class="dict-item-badge" style="flex-shrink:0;">${scale.intervals.split(',').length} notes</span>
+                `;
+
+                domItem.onclick = () => {
+                    if(!isMatch) return;
+                    if (AppState.appMode === 'search_notes' && AppState.searchKey === null && AppState.selectedNotesSet.size > 0) {
+                         const validKeys = getValidKeysForScale(searchProfile, scale.profile);
+                         if(validKeys.length > 1) { openScaleRootPicker(scale, validKeys); return; }
+                         else if (validKeys.length === 1) AppState.currentKey = validKeys[0];
+                    } else if (AppState.appMode === 'search_notes' && AppState.searchKey !== null) {
+                         AppState.currentKey = AppState.searchKey;
+                    }
+                    AppState.currentScale = scale;
+                    setAppMode('explore'); 
+                };
+                grid.appendChild(domItem);
+            });
+        }
+
+        function renderChordBuilder() {
+            const cbRoots = document.getElementById('cb-roots');
+            const cbQualities = document.getElementById('cb-qualities');
+            cbRoots.innerHTML = ''; cbQualities.innerHTML = '';
+
+            for(let i=0; i<12; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'cb-root-btn' + (i === AppState.cbSelectedRoot ? ' active' : '');
+                btn.innerText = NOTES[i];
+                btn.onclick = () => { AppState.cbSelectedRoot = i; renderChordBuilder(); };
+                cbRoots.appendChild(btn);
+            }
+
+            const filteredFormulas = AppState.showOnlyCommon ? CHORD_FORMULAS.filter(f => f.common) : CHORD_FORMULAS;
+            
+            filteredFormulas.forEach(formula => {
+                const btn = document.createElement('div');
+                btn.className = 'cb-qual-btn';
+                btn.innerHTML = `<strong>${NOTES[AppState.cbSelectedRoot]}</strong> ${formula.qualifiers[0]} <div style="font-size:0.7rem; color:#aaa">${formula.name}</div>`;
+                btn.onclick = () => toggleChordInSearch(AppState.cbSelectedRoot, formula.profile);
+                cbQualities.appendChild(btn);
+            });
+        }
+
+        // --- GESTION DES MODALS ET FICHIERS ---
+        function openKeyPicker(instIndex = null, stringIndex = null) {
+            AppState.tuningStringIndex = { instIndex, stringIndex };
+            
+            const modal = document.getElementById('key-picker-modal');
+            const grid = document.getElementById('key-picker-grid');
+            const title = document.getElementById('key-picker-title');
+            const btnAny = document.getElementById('btn-any-key');
+            grid.innerHTML = '';
+            
+            if (stringIndex !== null) {
+                title.innerText = `Accorder la corde ${stringIndex + 1}`;
+                btnAny.style.display = 'none';
+            } else {
+                title.innerText = `Sélectionner la Tonalité`;
+                if (AppState.appMode !== 'search_notes') {
+                    btnAny.style.display = 'none';
+                } else {
+                    btnAny.style.display = 'block';
+                    btnAny.classList.toggle('active', AppState.searchKey === null);
+                    btnAny.onclick = () => { AppState.searchKey = null; closeKeyPicker(); updateUI(); }
+                }
+            }
+            
+            const searchProfile = AppState.getSearchProfile();
+            let validTonics = new Set();
+            if (stringIndex === null && AppState.appMode === 'search_notes' && AppState.selectedNotesSet.size > 0 && AppState.dictTab === 'scales') {
+                const itemsToTest = AppState.showOnlyCommon ? SCALES_DB.filter(s => s.common) : SCALES_DB;
+                itemsToTest.forEach(item => { getValidKeysForScale(searchProfile, item.profile).forEach(k => validTonics.add(k)); });
+            } else {
+                for(let i=0; i<12; i++) validTonics.add(i); 
+            }
+
+            for (let i = 0; i < 12; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'key-btn';
+                btn.innerText = NOTES[i];
+                
+                if (stringIndex !== null) {
+                    if (instrumentInstances[instIndex] && instrumentInstances[instIndex].tuning && instrumentInstances[instIndex].tuning[stringIndex] === i) btn.classList.add('active');
+                } else {
+                    if (AppState.appMode !== 'search_notes' && i === AppState.currentKey) btn.classList.add('active');
+                    if (AppState.appMode === 'search_notes' && i === AppState.searchKey) btn.classList.add('active');
+                    if (AppState.appMode === 'search_notes' && AppState.selectedNotesSet.size > 0 && !validTonics.has(i)) btn.classList.add('disabled');
+                }
+
+                btn.onclick = () => {
+                    if (stringIndex !== null && instrumentInstances[instIndex]) {
+                        instrumentInstances[instIndex].tuning[stringIndex] = i;
+                        AppState.instrumentsData[instIndex].tuningName = 'Custom'; 
+                        instrumentInstances[instIndex].setupTuningUI();
+                        instrumentInstances[instIndex].draw();
+                        updateUI();
+                    } else {
+                        if (AppState.appMode !== 'search_notes') AppState.currentKey = i;
+                        else AppState.searchKey = i;
+                        updateUI();
+                    }
+                    closeKeyPicker();
+                };
+                grid.appendChild(btn);
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeKeyPicker() {
+            document.getElementById('key-picker-modal').style.display = 'none';
+            AppState.tuningStringIndex = null;
+        }
+
+        function openScaleRootPicker(scale, validKeys) {
+            const modal = document.getElementById('scale-root-picker-modal');
+            const grid = document.getElementById('scale-root-picker-grid');
+            document.getElementById('scale-root-picker-title').innerText = `Tonalité pour ${scale.name}`;
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 12; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'key-btn';
+                btn.innerText = NOTES[i];
+                if (!validKeys.includes(i)) btn.classList.add('disabled');
+                else {
+                    btn.onclick = () => {
+                        AppState.currentScale = scale;
+                        AppState.currentKey = i;
+                        setAppMode('explore'); 
+                        modal.style.display = 'none';
+                    };
+                }
+                grid.appendChild(btn);
+            }
+            modal.style.display = 'flex';
+        }
+
+        function openTuningPresetsPicker(instIndex) {
+            AppState.activeInstrumentMenuIndex = instIndex;
+            const currentType = AppState.instrumentsData[instIndex].type;
+            
+            document.getElementById('btn-inst-guitar').classList.toggle('active', currentType === 'guitar');
+            document.getElementById('btn-inst-bass').classList.toggle('active', currentType === 'bass');
+            document.getElementById('btn-inst-ukulele').classList.toggle('active', currentType === 'ukulele');
+            document.getElementById('btn-inst-piano').classList.toggle('active', currentType === 'piano');
+
+            updateTuningPresetsList(instIndex, currentType);
+            document.getElementById('tuning-presets-modal').style.display = 'flex';
+        }
+
+        function setInstrumentType(type) {
+            const instIndex = AppState.activeInstrumentMenuIndex;
+            AppState.instrumentsData[instIndex].type = type;
+            
+            document.getElementById('btn-inst-guitar').classList.toggle('active', type === 'guitar');
+            document.getElementById('btn-inst-bass').classList.toggle('active', type === 'bass');
+            document.getElementById('btn-inst-ukulele').classList.toggle('active', type === 'ukulele');
+            document.getElementById('btn-inst-piano').classList.toggle('active', type === 'piano');
+            
+            if (type !== 'piano') {
+                const presets = TUNING_PRESETS[type];
+                AppState.instrumentsData[instIndex].tuningName = presets[0].name;
+                AppState.instrumentsData[instIndex].tuning = [...presets[0].notes];
+            } else {
+                AppState.instrumentsData[instIndex].tuningName = '';
+                AppState.instrumentsData[instIndex].tuning = [];
+            }
+
+            buildInstrument(instIndex);
+            updateTuningPresetsList(instIndex, type);
+            updateUI(); 
+        }
+
+        function updateTuningPresetsList(instIndex, type) {
+            const list = document.getElementById('tuning-presets-list');
+            const tuningTitle = document.getElementById('tuning-title');
+
+            if (type === 'piano') {
+                list.innerHTML = '<div style="color:#aaa; text-align:center; padding: 20px;">Le piano a un accordage standard fixe.</div>';
+                tuningTitle.style.display = 'none';
+            } else {
+                tuningTitle.style.display = 'block';
+                list.innerHTML = '';
+                TUNING_PRESETS[type].forEach(preset => {
+                    const btn = document.createElement('button');
+                    btn.className = 'tuning-preset-btn';
+                    const notesStr = preset.notes.map(n => NOTES[n]).join(' ');
+                    btn.innerHTML = `<span>${preset.name}</span> <span class="tuning-notes">${notesStr}</span>`;
+                    
+                    btn.onclick = () => {
+                        AppState.instrumentsData[instIndex].tuningName = preset.name;
+                        AppState.instrumentsData[instIndex].tuning = [...preset.notes];
+                        if (instrumentInstances[instIndex] instanceof FretboardInstrument) {
+                            instrumentInstances[instIndex].setTuning(preset.notes);
+                        }
+                        document.getElementById('tuning-presets-modal').style.display = 'none';
+                        updateUI();
+                    };
+                    list.appendChild(btn);
+                });
+            }
+        }
+
+        function zoomIn(index) { if (instrumentInstances[index]) instrumentInstances[index].zoomIn(); }
+        function zoomOut(index) { if (instrumentInstances[index]) instrumentInstances[index].zoomOut(); }
+
+        // --- INITIALISATION ---
+        window.onload = async () => {
+            // Chargement des gammes
+            await initScalesDB();
+            loadState(); 
+            
+            buildInstrument(0);
+            buildInstrument(1);
+
+            if (AppState.splitMode) {
+                document.getElementById('inst-container-1').style.display = 'flex';
+                document.getElementById('btn-split').classList.add('active');
+            }
+            if (!AppState.dictVisible) {
+                const dict = document.getElementById('dictionary-zone');
+                dict.style.width = '0'; dict.style.borderLeft = 'none'; dict.style.padding = '0';
+                document.getElementById('btn-toggle-dict').classList.add('active');
+            }
+
+            document.getElementById('btn-key').addEventListener('click', () => openKeyPicker(null, null));
+            document.getElementById('btn-display-mode').addEventListener('click', () => { AppState.displayMode = AppState.displayMode === 'notes' ? 'intervals' : 'notes'; updateUI(); });
+            document.getElementById('btn-split').addEventListener('click', toggleSplitMode);
+            document.getElementById('btn-toggle-dict').addEventListener('click', toggleDictPanel);
+            document.getElementById('btn-fullscreen').addEventListener('click', toggleFullScreen);
+            
+            const btnFilter = document.getElementById('btn-filter-common');
+            btnFilter.className = AppState.showOnlyCommon ? 'active-toggle' : '';
+            btnFilter.addEventListener('click', () => { AppState.showOnlyCommon = !AppState.showOnlyCommon; btnFilter.className = AppState.showOnlyCommon ? 'active-toggle' : ''; updateUI(); });
+            
+            updateUI();
+            
+            requestAnimationFrame(() => {
+                instrumentInstances.forEach(inst => { if(inst) { inst.resize(); inst.draw(); } });
+            });
+
+            // Initialiser le Wake Lock à la première interaction de l'utilisateur
+            document.addEventListener('click', () => {
+                if (!wakeLock) requestWakeLock();
+            }, { once: true });
+        };
+    </script>
+</body>
+</html>
