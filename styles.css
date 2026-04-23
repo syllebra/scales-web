@@ -748,3 +748,117 @@ body.zen-mode #btn-restore-ui {
 .playing-audio {
     animation: pulse-audio 0.5s infinite;
 }
+
+/* Mobile dropdown menu base styles */
+.header-menu-dropdown {
+    display: none;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background: #3a3a3a;
+}
+
+.menu-item svg {
+    flex-shrink: 0;
+}
+
+/* --- Mobile Responsive Header --- */
+@media (max-width: 800px) {
+    /* Make header-right the positioned parent for dropdown */
+    .header-right {
+        position: relative;
+    }
+    
+    #top-bar {
+        padding: 0 10px;
+        gap: 5px;
+    }
+    
+    .header-section { width: auto; }
+    .header-center { 
+        width: auto; 
+        flex: 1;
+        min-width: 0;
+    }
+    .header-right { width: auto; }
+    
+    /* Smaller scale name */
+    #scale-name {
+        font-size: 1rem;
+        max-width: 120px;
+    }
+    
+    /* Compact action buttons on desktop */
+    .header-actions {
+        display: flex !important;
+        gap: 2px;
+    }
+    
+    .header-actions .icon-btn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    /* Hide desktop-only buttons on mobile */
+    .header-actions .desktop-only {
+        display: none;
+    }
+    
+    /* Show hamburger menu */
+    #btn-menu {
+        display: flex;
+    }
+    
+    /* Hide key label on mobile */
+    .key-selector .key-label {
+        display: none;
+    }
+    
+    .key-selector {
+        margin-left: 8px !important;
+    }
+    
+/* Mobile dropdown menu */
+    #header-menu-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 5px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 8px 0;
+        z-index: 1001;
+        min-width: 200px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    
+    #header-menu-dropdown.show {
+        display: block;
+    }
+}
+
+@media (min-width: 801px) {
+    #btn-menu {
+        display: none;
+    }
+    
+    .desktop-only {
+        display: flex !important;
+    }
+    
+    #header-menu-dropdown {
+        display: none !important;
+    }
+}

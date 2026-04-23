@@ -93,37 +93,84 @@
             </div>
 
             <div class="header-section header-right">
-                <div style="display:flex; gap: 4px;">
-                    <button class="icon-btn" id="btn-hide-ui" data-i18n-title="hideUI" title="Cacher l'interface (Zen Mode)">
+                <div class="header-actions" style="display:flex; gap: 4px;">
+                    <!-- Hamburger menu button (visible on mobile) -->
+                    <button class="icon-btn" id="btn-menu" title="Menu">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <!-- Desktop-only buttons (wrapped for mobile dropdown) -->
+                    <button class="icon-btn desktop-only" id="btn-hide-ui" data-i18n-title="hideUI" title="Cacher l'interface (Zen Mode)">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                             <line x1="1" y1="1" x2="23" y2="23"></line>
                         </svg>
                     </button>
-                    <button class="icon-btn" id="btn-split" data-i18n-title="splitView" title="Séparer la vue (2 instruments)">
+                    <button class="icon-btn desktop-only" id="btn-split" data-i18n-title="splitView" title="Séparer la vue (2 instruments)">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <line x1="3" y1="12" x2="21" y2="12"></line>
                         </svg>
                     </button>
-                    <button class="icon-btn" id="btn-toggle-dict" data-i18n-title="toggleDict" title="Afficher/Masquer le dictionnaire">
+                    <button class="icon-btn desktop-only" id="btn-toggle-dict" data-i18n-title="toggleDict" title="Afficher/Masquer le dictionnaire">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <line x1="15" y1="3" x2="15" y2="21"></line>
                         </svg>
                     </button>
-                    <button class="icon-btn" id="btn-fullscreen" data-i18n-title="fullscreen" title="Plein écran">
+                    <button class="icon-btn desktop-only" id="btn-fullscreen" data-i18n-title="fullscreen" title="Plein écran">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
                         </svg>
                     </button>
-                    <button class="icon-btn" id="btn-lang" title="Language">
+                    <button class="icon-btn desktop-only" id="btn-lang" title="Language">
                         <span style="font-weight:bold;font-size:0.8rem;">EN</span>
                     </button>
                 </div>
-                <div style="display:flex; align-items:center; margin-left: 15px; gap: 5px;">
-                    <span style="font-size: 0.9rem; color: #aaa;" data-i18n="key">Tonalité:</span>
+                <div class="key-selector" style="display:flex; align-items:center; margin-left: 15px; gap: 5px;">
+                    <span class="key-label" style="font-size: 0.9rem; color: #aaa;" data-i18n="key">Tonalité:</span>
                     <button id="btn-key">C</button>
+                </div>
+                
+                <!-- Mobile Dropdown Menu (hidden on desktop) -->
+                <div class="header-menu-dropdown" id="header-menu-dropdown">
+                    <div class="menu-item" onclick="toggleZenMode()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                        <span data-i18n="hideUI">Cacher l'interface</span>
+                    </div>
+                    <div class="menu-item" onclick="toggleSplitMode()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                        </svg>
+                        <span data-i18n="splitView">Séparer la vue</span>
+                    </div>
+                    <div class="menu-item" onclick="toggleDictPanel(); document.getElementById('header-menu-dropdown').classList.remove('show');">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="15" y1="3" x2="15" y2="21"></line>
+                        </svg>
+                        <span data-i18n="toggleDict">Afficher/Masquer le dictionnaire</span>
+                    </div>
+                    <div class="menu-item" onclick="toggleFullScreen()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                        <span data-i18n="fullscreen">Plein écran</span>
+                    </div>
+                    <div class="menu-item" onclick="toggleLang(); document.getElementById('header-menu-dropdown').classList.remove('show');">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                        </svg>
+                        <span>Langue: <span id="menu-lang-label">EN</span></span>
+                    </div>
                 </div>
             </div>
         </header>

@@ -1715,6 +1715,25 @@
             btnFilter.className = AppState.showOnlyCommon ? 'active-toggle' : '';
             btnFilter.addEventListener('click', () => { AppState.showOnlyCommon = !AppState.showOnlyCommon; btnFilter.className = AppState.showOnlyCommon ? 'active-toggle' : ''; updateUI(); });
 
+            // Hamburger menu toggle
+            const btnMenu = document.getElementById('btn-menu');
+            const menuDropdown = document.getElementById('header-menu-dropdown');
+            if (btnMenu) {
+                btnMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    menuDropdown.classList.toggle('show');
+                });
+            }
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (menuDropdown && menuDropdown.classList.contains('show')) {
+                    if (!menuDropdown.contains(e.target) && e.target !== btnMenu) {
+                        menuDropdown.classList.remove('show');
+                    }
+                }
+            });
+
             updateUI();
 
             requestAnimationFrame(() => {
