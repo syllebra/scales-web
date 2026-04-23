@@ -1,0 +1,750 @@
+/* --- Reset et base --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* --- Avertissement Portrait --- */
+#orientation-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: white;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.5rem;
+    padding: 20px;
+}
+
+@media screen and (orientation: portrait) {
+    #orientation-warning {
+        display: flex;
+    }
+
+    #app {
+        display: none !important;
+    }
+}
+
+/* --- Layout Principal --- */
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* --- 1. En-tête --- */
+#top-bar {
+    height: 65px;
+    background: #2a2a2a;
+    border-bottom: 2px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.header-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 33%;
+}
+
+.header-center {
+    width: 34%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header-right {
+    width: 33%;
+    justify-content: flex-end;
+}
+
+button {
+    background: #3a3a3a;
+    border: 1px solid #555;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s, color 0.2s;
+}
+
+button:active {
+    background: #555;
+}
+
+button.active-toggle {
+    background: #4da6ff;
+    color: #000;
+    border-color: #4da6ff;
+}
+
+/* --- Icon Buttons --- */
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #aaa;
+    border-radius: 6px;
+}
+
+.icon-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.icon-btn.active {
+    color: #4da6ff;
+    background: rgba(77, 166, 255, 0.1);
+}
+
+.icon-btn.active-search {
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.1);
+}
+
+#scale-name-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+#scale-name {
+    font-size: 1.2rem;
+    color: #4da6ff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+}
+
+#formula-bar {
+    display: flex;
+    gap: 5px;
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.interval-badge {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    transition: 0.1s;
+    cursor: default;
+}
+
+.interval-badge.root {
+    background: #d9534f;
+    color: white;
+    border-color: #d9534f;
+    border-radius: 6px;
+}
+
+/* Plus arrondi pour la fondamentale */
+#btn-key {
+    font-size: 1.5rem;
+    background: #1a1a1a;
+    border-color: #ffb84d;
+    color: #ffb84d;
+    min-width: 50px;
+    text-align: center;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #2a2a2a;
+    min-width: 210px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    border: 1px solid #444;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dropdown-content a {
+    color: #f0f0f0;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-content a:hover {
+    background-color: #3a3a3a;
+}
+
+.dropdown-content a svg {
+    color: #aaa;
+    flex-shrink: 0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+#formula-bar.interactive .interval-badge {
+    cursor: pointer;
+}
+
+#formula-bar.interactive .interval-badge:hover {
+    background: #555;
+}
+
+#formula-bar.interactive .interval-badge.selected {
+    background: #ff4d4d;
+    color: white;
+    border-color: #ff4d4d;
+}
+
+#formula-bar.interactive .interval-badge.root.selected {
+    background: #d9534f;
+}
+
+/* --- Structure Horizontale (Mobile Landscape Friendly) --- */
+#main-content {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+/* --- 2. Zone Instrument(s) --- */
+#instruments-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.instrument-container {
+    flex: 1;
+    position: relative;
+    background: #111;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+    border-bottom: 2px solid #000;
+    display: flex;
+}
+
+.instrument-container:last-child {
+    border-bottom: none;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+.btn-tuning-presets {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100;
+    background: rgba(40, 40, 40, 0.7);
+    border: 1px solid transparent;
+    color: #aaa;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+}
+
+.btn-tuning-presets:hover {
+    color: #fff;
+    background: rgba(60, 60, 60, 0.8);
+}
+
+.btn-tuning-presets:active {
+    background: #555;
+}
+
+.instrument-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #aaa;
+    pointer-events: none;
+    border: 1px solid #333;
+}
+
+.tuning-pegs {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 60px;
+    height: 100%;
+    pointer-events: none;
+}
+
+.peg {
+    pointer-events: auto;
+    position: absolute;
+    left: 10px;
+    background: #222;
+    border: 2px solid #555;
+    color: #ccc;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    transition: all 0.1s;
+}
+
+.peg:active {
+    transform: scale(0.9);
+    background: #444;
+}
+
+.disabled-peg {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    pointer-events: none;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.zoom-controls {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.zoom-controls button {
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(40, 40, 40, 0.7);
+    border: none;
+    color: #aaa;
+}
+
+.zoom-controls button:hover {
+    color: #fff;
+    background: rgba(60, 60, 60, 0.8);
+}
+
+/* --- 3. Dictionnaire (Onglets & Grille - A Droite) --- */
+#dictionary-zone {
+    width: 320px;
+    background: #222;
+    border-left: 2px solid #444;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: width 0.3s;
+}
+
+.tabs {
+    display: flex;
+    background: #1a1a1a;
+}
+
+.tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    background: #222;
+    color: #888;
+    border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+    color: #4da6ff;
+    border-bottom-color: #4da6ff;
+    background: #2a2a2a;
+}
+
+.grid-header {
+    padding: 8px 10px;
+    background: #2a2a2a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #333;
+    gap: 5px;
+}
+
+#dictionary-grid {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    align-content: start;
+}
+
+.dict-item {
+    background: #333;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.1s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dict-item:hover {
+    background: #3a3a3a;
+}
+
+.dict-item.active {
+    border-color: #4da6ff;
+    background: #1f3a52;
+    color: #fff;
+}
+
+.dict-item.active-chord {
+    border-color: #ff4d4d;
+    background: #4d1f1f;
+    color: #fff;
+}
+
+.dict-item-badge {
+    font-size: 0.7rem;
+    background: #555;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.dict-item.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    background: #222;
+}
+
+.chord-qualifier {
+    font-size: 0.8rem;
+    color: #ffb84d;
+    font-weight: bold;
+}
+
+.dict-group-header {
+    grid-column: 1 / -1;
+    font-weight: bold;
+    color: #ffb84d;
+    border-bottom: 1px solid #444;
+    padding-bottom: 4px;
+    margin-top: 8px;
+}
+
+/* --- Chord Builder (Recherche) --- */
+#chord-builder {
+    display: none;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.cb-roots {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+}
+
+.cb-root-btn {
+    flex-shrink: 0;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #333;
+    color: white;
+    border: 2px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.cb-root-btn.active {
+    background: #ffb84d;
+    color: #000;
+    border-color: #ffb84d;
+}
+
+.cb-qualities {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.cb-qual-btn {
+    background: #333;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #555;
+}
+
+.cb-qual-btn:active {
+    background: #555;
+}
+
+.cb-qual-btn strong {
+    color: #ffb84d;
+    font-size: 1.1rem;
+}
+
+/* --- Popup Modals --- */
+#key-picker-modal,
+#scale-root-picker-modal,
+#tuning-presets-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #555;
+    text-align: center;
+    max-width: 90%;
+    width: 350px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.key-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.key-btn {
+    padding: 15px 0;
+    font-size: 1.2rem;
+    background: #1a1a1a;
+    color: #ffb84d;
+    border: 1px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.key-btn:hover:not(.disabled) {
+    background: #333;
+}
+
+.key-btn.disabled {
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.key-btn.active {
+    background: #ffb84d;
+    color: #000;
+    border-color: #ffb84d;
+}
+
+#btn-any-key {
+    margin-top: 15px;
+    width: 100%;
+    padding: 12px;
+    background: #4da6ff;
+    color: #000;
+    border: none;
+    font-weight: bold;
+}
+
+/* Styles spécifiques pour la liste d'accordages */
+.tuning-preset-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    background: #1a1a1a;
+    color: #f0f0f0;
+    border: 1px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tuning-preset-btn:hover {
+    background: #333;
+}
+
+.tuning-preset-btn .tuning-notes {
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.instrument-selector {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+}
+
+.instrument-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.instrument-btn.active {
+    color: #4da6ff;
+    border-bottom: 2px solid #4da6ff;
+    font-weight: bold;
+}
+
+/* --- Version App --- */
+#app-version {
+    position: fixed;
+    bottom: 4px;
+    right: 8px;
+    font-size: 0.75rem;
+    color: #888;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* --- ZEN MODE (Cacher l'interface) --- */
+body.zen-mode #top-bar,
+body.zen-mode #dictionary-zone,
+body.zen-mode .btn-tuning-presets,
+body.zen-mode .instrument-label,
+body.zen-mode #app-version {
+    display: none !important;
+}
+
+body.zen-mode #btn-restore-ui {
+    display: flex !important;
+}
+
+.floating-restore {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 9999;
+    background: rgba(40, 40, 40, 0.8);
+    border: 1px solid #555;
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    width: 46px;
+    height: 46px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.floating-restore:hover {
+    background: #2a2a2a;
+    color: #fff;
+}
+
+/* Animation Audio */
+@keyframes pulse-audio {
+    0% { color: #4da6ff; }
+    50% { color: #fff; transform: scale(1.1); }
+    100% { color: #4da6ff; }
+}
+
+.playing-audio {
+    animation: pulse-audio 0.5s infinite;
+}
