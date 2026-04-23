@@ -65,7 +65,7 @@
         #scale-name { font-size: 1.2rem; color: #4da6ff; margin-bottom: 5px; white-space: nowrap; }
         #formula-bar { display: flex; gap: 5px; font-size: 0.85rem; flex-wrap: wrap; justify-content: center; }
         .interval-badge { background: #333; padding: 2px 6px; border-radius: 4px; border: 1px solid #555; transition: 0.1s; cursor: default; }
-        .interval-badge.root { background: #d9534f; color: white; border-color: #d9534f; }
+        .interval-badge.root { background: #d9534f; color: white; border-color: #d9534f; border-radius: 6px; } /* Plus arrondi pour la fondamentale */
         
         #btn-key {
             font-size: 1.5rem; background: #1a1a1a; border-color: #ffb84d; 
@@ -74,11 +74,17 @@
 
         .dropdown { position: relative; display: inline-block; }
         .dropdown-content {
-            display: none; position: absolute; background-color: #2a2a2a; min-width: 190px;
+            display: none; position: absolute; background-color: #2a2a2a; min-width: 210px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid #444; border-radius: 6px;
+            overflow: hidden;
         }
-        .dropdown-content a { color: #f0f0f0; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; }
+        .dropdown-content a { 
+            color: #f0f0f0; padding: 12px 16px; text-decoration: none; 
+            display: flex; align-items: center; gap: 12px; cursor: pointer;
+            transition: background 0.2s;
+        }
         .dropdown-content a:hover { background-color: #3a3a3a; }
+        .dropdown-content a svg { color: #aaa; flex-shrink: 0; }
         .dropdown:hover .dropdown-content { display: block; }
 
         #formula-bar.interactive .interval-badge { cursor: pointer; }
@@ -300,9 +306,18 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
                     <div class="dropdown-content">
-                        <a onclick="setAppMode('explore')">🔍 Mode Exploration</a>
-                        <a onclick="setAppMode('search_notes')">🎵 Recherche par Notes</a>
-                        <a onclick="setAppMode('search_intervals')">📏 Recherche par Intervalles</a>
+                        <a onclick="setAppMode('explore')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            Mode Exploration
+                        </a>
+                        <a onclick="setAppMode('search_notes')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                            Recherche par Notes
+                        </a>
+                        <a onclick="setAppMode('search_intervals')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                            Recherche par Intervalles
+                        </a>
                     </div>
                 </div>
                 <!-- Toggle Affichage (Notes / Intervalles) -->
@@ -908,7 +923,10 @@
                 
                 ctx.moveTo(0, yTopNut); ctx.lineTo(endX, yTopEnd); ctx.lineTo(endX, yBotEnd); ctx.lineTo(0, yBotNut); ctx.fill();
 
+                // Repères (Fret markers)
                 const markers = [3, 5, 7, 9, 15, 17, 19, 21], doubleMarkers = [12, 24];
+                
+                // 1. Repères à l'intérieur du manche
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
                 for(let i = 1; i <= this.fretsCount; i++) {
                     const cx = (this.getFretX(i) + this.getFretX(i-1)) / 2;
@@ -919,6 +937,19 @@
                         const offset = (this.getStringY(N-1, cx) - this.getStringY(0, cx)) / 4;
                         ctx.beginPath(); ctx.arc(cx, cy - offset, 8, 0, Math.PI * 2); ctx.fill();
                         ctx.beginPath(); ctx.arc(cx, cy + offset, 8, 0, Math.PI * 2); ctx.fill(); 
+                    }
+                }
+
+                // 2. Repères d'aide au-dessus du manche (pour rester visibles)
+                ctx.fillStyle = '#555';
+                for(let i = 1; i <= this.fretsCount; i++) {
+                    const cx = (this.getFretX(i) + this.getFretX(i-1)) / 2;
+                    const yTopMarker = this.getStringY(0, cx) - 35;
+                    if (markers.includes(i)) {
+                        ctx.beginPath(); ctx.arc(cx, yTopMarker, 4, 0, Math.PI * 2); ctx.fill();
+                    } else if (doubleMarkers.includes(i)) {
+                        ctx.beginPath(); ctx.arc(cx - 6, yTopMarker, 4, 0, Math.PI * 2); ctx.fill();
+                        ctx.beginPath(); ctx.arc(cx + 6, yTopMarker, 4, 0, Math.PI * 2); ctx.fill();
                     }
                 }
 
@@ -943,7 +974,17 @@
                         const y = this.getStringY(s, x);
 
                         if (scaleNote) {
-                            ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2);
+                            const isRootShape = scaleNote.isRoot || (AppState.dictTab === 'chords' && scaleNote.isChordRoot);
+                            ctx.beginPath(); 
+                            
+                            if (isRootShape) {
+                                // Carré aux bords arrondis pour la fondamentale
+                                if (ctx.roundRect) ctx.roundRect(x - 14, y - 14, 28, 28, 6);
+                                else ctx.rect(x - 14, y - 14, 28, 28);
+                            } else {
+                                // Cercle pour les autres notes
+                                ctx.arc(x, y, 14, 0, Math.PI * 2);
+                            }
                             
                             if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
                                 ctx.fillStyle = '#ff4d4d';
@@ -961,7 +1002,10 @@
                             if (AppState.appMode === 'explore' && AppState.dictTab === 'scales' && !scaleNote.isRoot) ctx.fillStyle = '#111';
 
                             let text = NOTES[noteIndex];
-                            if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') text = scaleNote.interval !== '?' ? scaleNote.interval : text;
+                            if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') {
+                                text = scaleNote.interval !== '?' ? scaleNote.interval : text;
+                                if (text === '1') text = 'R'; // Remplacement du 1 par R
+                            }
                             ctx.fillText(text, x, y + 1);
                         } else if (AppState.appMode === 'search_notes') {
                             ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; ctx.fill();
@@ -1101,7 +1145,15 @@
                     const cy = k.type === 'black' ? k.h - 30 : k.h - 40;
 
                     if (scaleNote) {
-                        ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+                        const isRootShape = scaleNote.isRoot || (AppState.dictTab === 'chords' && scaleNote.isChordRoot);
+                        ctx.beginPath(); 
+                        
+                        if (isRootShape) {
+                            if (ctx.roundRect) ctx.roundRect(cx - 16, cy - 16, 32, 32, 6);
+                            else ctx.rect(cx - 16, cy - 16, 32, 32);
+                        } else {
+                            ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+                        }
 
                         if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
                             ctx.fillStyle = '#ff4d4d';
@@ -1118,7 +1170,10 @@
                         if (AppState.appMode === 'explore' && AppState.dictTab === 'scales' && !scaleNote.isRoot) ctx.fillStyle = '#111';
 
                         let text = NOTES[k.note];
-                        if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') text = scaleNote.interval !== '?' ? scaleNote.interval : text;
+                        if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') {
+                            text = scaleNote.interval !== '?' ? scaleNote.interval : text;
+                            if (text === '1') text = 'R'; // Remplacement du 1 par R
+                        }
                         ctx.fillText(text, cx, cy + 1);
                     } else if (AppState.appMode === 'search_notes') {
                         ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2);
@@ -1273,8 +1328,15 @@
                     }
 
                     // Tête de la note
+                    const isRootShape = vn.isRoot || (AppState.dictTab === 'chords' && vn.isChordRoot);
                     ctx.beginPath();
-                    ctx.ellipse(x, y, 9, 7, -Math.PI / 8, 0, Math.PI * 2);
+                    
+                    if (isRootShape) {
+                        if (ctx.roundRect) ctx.roundRect(x - 10, y - 8, 20, 16, 5);
+                        else ctx.rect(x - 10, y - 8, 20, 16);
+                    } else {
+                        ctx.ellipse(x, y, 9, 7, -Math.PI / 8, 0, Math.PI * 2);
+                    }
                     
                     if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
                         ctx.fillStyle = '#ff4d4d';
@@ -1291,12 +1353,12 @@
                     ctx.beginPath();
                     if (vn.staffPos < 6) {
                         // Hampe vers le haut (droite)
-                        ctx.moveTo(x + 7, y - 2);
-                        ctx.lineTo(x + 7, y - 40);
+                        ctx.moveTo(x + (isRootShape? 10 : 7), y - 2);
+                        ctx.lineTo(x + (isRootShape? 10 : 7), y - 40);
                     } else {
                         // Hampe vers le bas (gauche)
-                        ctx.moveTo(x - 7, y + 2);
-                        ctx.lineTo(x - 7, y + 40);
+                        ctx.moveTo(x - (isRootShape? 10 : 7), y + 2);
+                        ctx.lineTo(x - (isRootShape? 10 : 7), y + 40);
                     }
                     ctx.lineWidth = 2;
                     ctx.strokeStyle = ctx.fillStyle;
@@ -1309,6 +1371,7 @@
                     let text = NOTES[vn.index];
                     if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') {
                         text = vn.interval !== '?' ? vn.interval : text;
+                        if (text === '1') text = 'R'; // Remplacement du 1 par R
                     }
                     ctx.fillText(text, x, yBottomLine + 60 + (i%2 === 0 ? 0 : 20)); // Décalage pour éviter les collisions textuelles
                 });
@@ -1527,7 +1590,7 @@
                         const i = interval.trim();
                         const span = document.createElement('span');
                         span.className = 'interval-badge' + (i === '1' ? ' root' : '');
-                        span.innerText = i;
+                        span.innerText = i === '1' ? 'R' : i; // Remplacement du 1 par R
                         formulaBar.appendChild(span);
                     });
                 }
@@ -1569,7 +1632,7 @@
                     const span = document.createElement('span');
                     span.className = 'interval-badge' + (interval === '1' ? ' root' : '');
                     if (AppState.selectedIntervalsSet.has(interval)) span.classList.add('selected');
-                    span.innerText = interval === '1' ? 'R' : interval;
+                    span.innerText = interval === '1' ? 'R' : interval; // Remplacement du 1 par R
                     span.onclick = () => toggleIntervalSelection(interval);
                     formulaBar.appendChild(span);
                 });
@@ -1833,7 +1896,6 @@
             updateTuningPresetsList(instIndex, type);
             updateUI(); 
             
-            // FIX: Forcer le redimensionnement et l'affichage du nouveau canvas créé
             requestAnimationFrame(() => {
                 if (instrumentInstances[instIndex]) {
                     instrumentInstances[instIndex].resize();
