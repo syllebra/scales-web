@@ -36,6 +36,7 @@
             height: 65px; background: #2a2a2a; border-bottom: 2px solid #444;
             display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
             flex-shrink: 0;
+            transition: all 0.3s ease;
         }
         
         .header-section { display: flex; align-items: center; gap: 10px; width: 33%; }
@@ -49,16 +50,17 @@
         }
         button:active { background: #555; }
         button.active-toggle { background: #4da6ff; color: #000; border-color: #4da6ff; }
-        button.search-mode-active { background: #ff4d4d; color: white; border-color: #ff4d4d; }
 
         /* --- Icon Buttons --- */
         .icon-btn { 
             display: flex; align-items: center; justify-content: center;
             width: 36px; height: 36px; padding: 0;
             background: transparent; border: 1px solid transparent; color: #aaa;
+            border-radius: 6px;
         }
         .icon-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
         .icon-btn.active { color: #4da6ff; background: rgba(77, 166, 255, 0.1); }
+        .icon-btn.active-search { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
 
         #scale-name { font-size: 1.2rem; color: #4da6ff; margin-bottom: 5px; white-space: nowrap; }
         #formula-bar { display: flex; gap: 5px; font-size: 0.85rem; flex-wrap: wrap; justify-content: center; }
@@ -72,7 +74,7 @@
 
         .dropdown { position: relative; display: inline-block; }
         .dropdown-content {
-            display: none; position: absolute; background-color: #2a2a2a; min-width: 160px;
+            display: none; position: absolute; background-color: #2a2a2a; min-width: 190px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid #444; border-radius: 6px;
         }
         .dropdown-content a { color: #f0f0f0; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; }
@@ -255,6 +257,27 @@
             color: #4da6ff; border-bottom: 2px solid #4da6ff; font-weight: bold;
         }
 
+        /* --- ZEN MODE (Cacher l'interface) --- */
+        body.zen-mode #top-bar, 
+        body.zen-mode #dictionary-zone,
+        body.zen-mode .btn-tuning-presets,
+        body.zen-mode .instrument-label,
+        body.zen-mode .zoom-controls {
+            display: none !important;
+        }
+        body.zen-mode #btn-restore-ui {
+            display: flex !important;
+        }
+        .floating-restore {
+            position: fixed; top: 15px; right: 15px; z-index: 9999;
+            background: rgba(40, 40, 40, 0.8); border: 1px solid #555;
+            backdrop-filter: blur(4px); border-radius: 50%;
+            width: 46px; height: 46px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center; cursor: pointer; color: #aaa;
+        }
+        .floating-restore:hover { background: #2a2a2a; color: #fff; }
+
     </style>
 </head>
 <body>
@@ -262,31 +285,48 @@
         📱 Veuillez tourner votre appareil en mode paysage pour utiliser l'application.
     </div>
 
+    <!-- Bouton flottant pour restaurer l'UI quand Zen Mode est actif -->
+    <button class="floating-restore" id="btn-restore-ui" title="Afficher l'interface">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+
     <div id="app">
         <!-- En-tête -->
         <header id="top-bar">
             <div class="header-section">
+                <!-- Dropdown Modes -->
                 <div class="dropdown">
-                    <button id="btn-app-mode">Mode: Exploration</button>
+                    <button class="icon-btn" id="btn-app-mode" title="Mode de recherche">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
                     <div class="dropdown-content">
-                        <a onclick="setAppMode('explore')">Mode: Exploration</a>
-                        <a onclick="setAppMode('search_notes')">Search: By Notes</a>
-                        <a onclick="setAppMode('search_intervals')">Search: By Intervals</a>
+                        <a onclick="setAppMode('explore')">🔍 Mode Exploration</a>
+                        <a onclick="setAppMode('search_notes')">🎵 Recherche par Notes</a>
+                        <a onclick="setAppMode('search_intervals')">📏 Recherche par Intervalles</a>
                     </div>
                 </div>
-                <button id="btn-display-mode" title="Basculer Notes / Intervalles">Affichage : Notes</button>
+                <!-- Toggle Affichage (Notes / Intervalles) -->
+                <button class="icon-btn" id="btn-display-mode" title="Affichage : Notes / Intervalles">
+                    <svg id="icon-notes" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                    <svg id="icon-intervals" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                </button>
             </div>
+            
             <div class="header-center">
                 <h1 id="scale-name">...</h1>
                 <div id="formula-bar"></div>
             </div>
+            
             <div class="header-section header-right">
                 <div style="display:flex; gap: 4px;">
+                    <button class="icon-btn" id="btn-hide-ui" title="Cacher l'interface (Zen Mode)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    </button>
                     <button class="icon-btn" id="btn-split" title="Séparer la vue (2 instruments)">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="12" x2="21" y2="12"></line></svg>
                     </button>
-                    <button class="icon-btn" id="btn-toggle-dict" title="Afficher/Masquer le panneau">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <button class="icon-btn" id="btn-toggle-dict" title="Afficher/Masquer le dictionnaire">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
                     </button>
                     <button class="icon-btn" id="btn-fullscreen" title="Plein écran">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
@@ -505,8 +545,6 @@
                 const data = await response.json();
                 if (Array.isArray(data) && data.length > 0) {
                     SCALES_DB = data.filter(s => s.name && s.intervals).map(s => {
-                        // SÉCURITÉ: si le flag "common" manque (ex: non exporté en JSON), 
-                        // on regarde s'il existe dans la DB par défaut.
                         if (s.common === "true" || s.common === 1) s.common = true;
                         else if (s.common === "false" || s.common === 0) s.common = false;
                         else if (typeof s.common !== 'boolean') {
@@ -1399,6 +1437,13 @@
             }
         }
 
+        function toggleZenMode() {
+            document.body.classList.toggle('zen-mode');
+            setTimeout(() => {
+                instrumentInstances.forEach(inst => { if(inst) inst.resize(); });
+            }, 100); // Laisse le temps au DOM de recalculer ses dimensions
+        }
+
         function setAppMode(mode) {
             AppState.appMode = mode;
             if (mode !== 'search_notes') AppState.selectedNotesSet.clear();
@@ -1455,11 +1500,17 @@
             
             formulaBar.className = ''; 
             formulaBar.innerHTML = '';
+
+            // Mise à jour de l'icône du mode de recherche
+            btnAppMode.classList.toggle('active-search', AppState.appMode !== 'explore');
+            
+            // Mise à jour de l'icône de toggle (notes ou intervalles)
+            const btnMode = document.getElementById('btn-display-mode');
+            document.getElementById('icon-notes').style.display = AppState.displayMode === 'notes' ? 'block' : 'none';
+            document.getElementById('icon-intervals').style.display = AppState.displayMode === 'notes' ? 'none' : 'block';
+            btnMode.classList.toggle('active', AppState.displayMode !== 'notes');
             
             if (AppState.appMode === 'explore') {
-                btnAppMode.innerText = "Mode: Exploration";
-                btnAppMode.className = "";
-                
                 let titleText = AppState.currentScale ? AppState.currentScale.name : '...';
                 if (AppState.dictTab === 'chords' && AppState.currentChordFormula) {
                     titleText += ` • ${NOTES[AppState.currentChordRoot]}${AppState.currentChordFormula.qualifiers[0]}`;
@@ -1486,8 +1537,6 @@
                 renderDictionaryGrid();
 
             } else if (AppState.appMode === 'search_notes') {
-                btnAppMode.innerText = "Search: By Notes";
-                btnAppMode.className = "search-mode-active";
                 scaleName.innerHTML = "Recherche par notes";
                 scaleName.style.display = "block";
                 formulaBar.style.display = "none";
@@ -1507,8 +1556,6 @@
                 }
 
             } else if (AppState.appMode === 'search_intervals') {
-                btnAppMode.innerText = "Search: By Intervals";
-                btnAppMode.className = "search-mode-active";
                 scaleName.innerHTML = "Recherche par intervalles";
                 scaleName.style.display = "block"; 
                 formulaBar.style.display = "flex";
@@ -1533,10 +1580,6 @@
                 chordBuilder.style.display = 'none';
                 renderDictionaryGrid();
             }
-            
-            const btnMode = document.getElementById('btn-display-mode');
-            btnMode.innerText = AppState.displayMode === 'notes' ? 'Affichage : Notes' : 'Affichage : Intervalles';
-            btnMode.className = AppState.displayMode === 'notes' ? '' : 'active-toggle';
 
             instrumentInstances.forEach(inst => { if(inst) inst.draw(); });
             saveState(); // Auto-save after UI updates
@@ -1858,6 +1901,10 @@
             document.getElementById('btn-split').addEventListener('click', toggleSplitMode);
             document.getElementById('btn-toggle-dict').addEventListener('click', toggleDictPanel);
             document.getElementById('btn-fullscreen').addEventListener('click', toggleFullScreen);
+            
+            // Cacher/Restaurer l'interface (Zen Mode)
+            document.getElementById('btn-hide-ui').addEventListener('click', toggleZenMode);
+            document.getElementById('btn-restore-ui').addEventListener('click', toggleZenMode);
             
             const btnFilter = document.getElementById('btn-filter-common');
             btnFilter.className = AppState.showOnlyCommon ? 'active-toggle' : '';
