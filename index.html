@@ -771,12 +771,10 @@
 </head>
 
 <body>
-    <div id="orientation-warning">
-        📱 Veuillez tourner votre appareil en mode paysage pour utiliser l'application.
-    </div>
+    <div id="orientation-warning" data-i18n="orientationWarning"></div>
 
     <!-- Bouton flottant pour restaurer l'UI quand Zen Mode est actif -->
-    <button class="floating-restore" id="btn-restore-ui" title="Afficher l'interface">
+    <button class="floating-restore" id="btn-restore-ui" data-i18n-title="zenModeRestore" title="Afficher l'interface">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -790,7 +788,7 @@
             <div class="header-section">
                 <!-- Dropdown Modes -->
                 <div class="dropdown">
-                    <button class="icon-btn" id="btn-app-mode" title="Mode de recherche">
+                    <button class="icon-btn" id="btn-app-mode" data-i18n-title="modeExplore" title="Mode de recherche">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="11" cy="11" r="8"></circle>
@@ -804,7 +802,7 @@
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                            Mode Exploration
+                            <span data-i18n="modeExplore">Mode Exploration</span>
                         </a>
                         <a onclick="setAppMode('search_notes')">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -813,7 +811,7 @@
                                 <circle cx="6" cy="18" r="3"></circle>
                                 <circle cx="18" cy="16" r="3"></circle>
                             </svg>
-                            Recherche par Notes
+<span data-i18n="modeSearchNotes">Recherche par Notes</span>
                         </a>
                         <a onclick="setAppMode('search_intervals')">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -823,12 +821,12 @@
                                 <line x1="10" y1="3" x2="8" y2="21"></line>
                                 <line x1="16" y1="3" x2="14" y2="21"></line>
                             </svg>
-                            Recherche par Intervalles
+<span data-i18n="modeSearchIntervals">Recherche par Intervalles</span>
                         </a>
                     </div>
                 </div>
                 <!-- Toggle Affichage (Notes / Intervalles) -->
-                <button class="icon-btn" id="btn-display-mode" title="Affichage : Notes / Intervalles">
+                <button class="icon-btn" id="btn-display-mode" data-i18n-title="displayNotes" title="Affichage : Notes / Intervalles">
                     <svg id="icon-notes" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 18V5l12-2v13"></path>
@@ -858,30 +856,10 @@
 
             <div class="header-section header-right">
                 <div style="display:flex; gap: 4px;">
-                    <button class="icon-btn" id="btn-hide-ui" title="Cacher l'interface (Zen Mode)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                            </path>
-                            <line x1="1" y1="1" x2="23" y2="23"></line>
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="btn-split" title="Séparer la vue (2 instruments)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="btn-toggle-dict" title="Afficher/Masquer le dictionnaire">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="15" y1="3" x2="15" y2="21"></line>
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="btn-fullscreen" title="Plein écran">
+<button class="icon-btn" id="btn-hide-ui" data-i18n-title="hideUI" title="Cacher l'interface (Zen Mode)">
+                    <button class="icon-btn" id="btn-split" data-i18n-title="splitView" title="Séparer la vue (2 instruments)">
+                    <button class="icon-btn" id="btn-toggle-dict" data-i18n-title="toggleDict" title="Afficher/Masquer le dictionnaire">
+                    <button class="icon-btn" id="btn-fullscreen" data-i18n-title="fullscreen" title="Plein écran">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path
@@ -889,9 +867,12 @@
                             </path>
                         </svg>
                     </button>
+                    <button class="icon-btn" id="btn-lang" title="Language">
+                        <span style="font-weight:bold;font-size:0.8rem;">FR</span>
+                    </button>
                 </div>
                 <div style="display:flex; align-items:center; margin-left: 15px; gap: 5px;">
-                    <span style="font-size: 0.9rem; color: #aaa;">Tonalité:</span>
+                    <span style="font-size: 0.9rem; color: #aaa;" data-i18n="key">Tonalité:</span>
                     <button id="btn-key">C</button>
                 </div>
             </div>
@@ -946,13 +927,13 @@
             <!-- Dictionnaire (Onglets & Grille) -->
             <footer id="dictionary-zone">
                 <div class="tabs">
-                    <div class="tab active" id="tab-scales" onclick="setDictTab('scales')">GAMMES</div>
-                    <div class="tab" id="tab-chords" onclick="setDictTab('chords')">ACCORDS</div>
+                    <div class="tab active" id="tab-scales" onclick="setDictTab('scales')" data-i18n="tabScales">GAMMES</div>
+                    <div class="tab" id="tab-chords" onclick="setDictTab('chords')" data-i18n="tabChords">ACCORDS</div>
                 </div>
                 <div class="grid-header">
-                    <strong id="dict-title">Dictionnaire</strong>
+                    <strong id="dict-title" data-i18n="dictionary">Dictionnaire</strong>
                     <div style="display:flex; gap: 5px;">
-                        <button id="btn-filter-common" class="active-toggle" style="padding: 4px 8px;">Common</button>
+                        <button id="btn-filter-common" class="active-toggle" style="padding: 4px 8px;" data-i18n="commonFilter">Common</button>
                     </div>
                 </div>
 
@@ -968,21 +949,21 @@
         <!-- Modal Choix de Tonalité (Général / Corde) -->
         <div id="key-picker-modal">
             <div class="modal-content">
-                <h3 id="key-picker-title">Sélectionner la Tonalité</h3>
+                <h3 id="key-picker-title" data-i18n="selectKey">Sélectionner la Tonalité</h3>
                 <div class="key-picker-grid" id="key-picker-grid"></div>
-                <button id="btn-any-key" class="key-btn">Toutes (Any)</button>
+                <button id="btn-any-key" class="key-btn" data-i18n="allAny">Toutes (Any)</button>
                 <button onclick="closeKeyPicker()"
-                    style="margin-top:10px; width:100%; background: #555;">Annuler</button>
+                    style="margin-top:10px; width:100%; background: #555;" data-i18n="cancel">Annuler</button>
             </div>
         </div>
 
         <!-- Modal Choix de Tonalité Spécifique -->
         <div id="scale-root-picker-modal">
             <div class="modal-content">
-                <h3 id="scale-root-picker-title">Sélectionner la Tonalité</h3>
+                <h3 id="scale-root-picker-title" data-i18n="selectKey">Sélectionner la Tonalité</h3>
                 <div class="key-picker-grid" id="scale-root-picker-grid"></div>
                 <button onclick="document.getElementById('scale-root-picker-modal').style.display='none'"
-                    style="margin-top:15px; width:100%; background: #555;">Annuler</button>
+                    style="margin-top:15px; width:100%; background: #555;" data-i18n="cancel">Annuler</button>
             </div>
         </div>
 
@@ -991,21 +972,21 @@
             <div class="modal-content">
                 <div class="instrument-selector">
                     <button class="instrument-btn active" id="btn-inst-guitar"
-                        onclick="setInstrumentType('guitar')">Guitare</button>
-                    <button class="instrument-btn" id="btn-inst-bass" onclick="setInstrumentType('bass')">Basse</button>
+                        onclick="setInstrumentType('guitar')" data-i18n="guitar">Guitare</button>
+                    <button class="instrument-btn" id="btn-inst-bass" onclick="setInstrumentType('bass')" data-i18n="bass">Basse</button>
                     <button class="instrument-btn" id="btn-inst-ukulele"
-                        onclick="setInstrumentType('ukulele')">Ukulélé</button>
+                        onclick="setInstrumentType('ukulele')" data-i18n="ukulele">Ukulélé</button>
                     <button class="instrument-btn" id="btn-inst-piano"
-                        onclick="setInstrumentType('piano')">Piano</button>
+                        onclick="setInstrumentType('piano')" data-i18n="piano">Piano</button>
                     <button class="instrument-btn" id="btn-inst-score"
-                        onclick="setInstrumentType('score')">Partition</button>
+                        onclick="setInstrumentType('score')" data-i18n="score">Partition</button>
                 </div>
-                <h3 id="tuning-title">Accordages</h3>
+                <h3 id="tuning-title" data-i18n="tuningPresets">Accordages</h3>
                 <div id="tuning-presets-list" style="margin-top: 15px;">
                     <!-- Rempli par JS -->
                 </div>
                 <button onclick="document.getElementById('tuning-presets-modal').style.display='none'"
-                    style="margin-top:15px; width:100%; background: #555;">Fermer</button>
+                    style="margin-top:15px; width:100%; background: #555;" data-i18n="close">Fermer</button>
             </div>
         </div>
     </div>
@@ -1015,6 +996,103 @@
         const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
         const ALL_INTERVALS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', '#5', '6', 'b7', '7'];
+
+        const TRANSLATIONS = {
+            en: {
+                orientationWarning: "📱 Please rotate your device to landscape mode to use the application.",
+                appVersion: "v1.0.0",
+                modeExplore: "Explore Mode",
+                modeSearchNotes: "Search by Notes",
+                modeSearchIntervals: "Search by Intervals",
+                displayNotes: "Display: Notes / Intervals",
+                hideUI: "Hide UI (Zen Mode)",
+                splitView: "Split view (2 instruments)",
+                toggleDict: "Show/Hide Dictionary",
+                fullscreen: "Fullscreen",
+                key: "Key:",
+                tabScales: "SCALES",
+                tabChords: "CHORDS",
+                dictionary: "Dictionary",
+                commonFilter: "Common",
+                selectKey: "Select Key",
+                allAny: "Any",
+                cancel: "Cancel",
+                tuningPresets: "Tunings",
+                guitar: "Guitar",
+                bass: "Bass",
+                ukulele: "Ukulele",
+                piano: "Piano",
+                score: "Score",
+                close: "Close",
+                scaleDictionary: "Scale Dictionary",
+                chordHarmonization: "Harmonization",
+                searchByNotes: "Search by notes",
+                searchByIntervals: "Search by intervals",
+                resultsCount: "Results",
+                addChordSearch: "Add a chord to search",
+                zenModeRestore: "Show UI"
+            },
+            fr: {
+                orientationWarning: "📱 Veuillez tourner votre appareil en mode paysage pour utiliser l'application.",
+                appVersion: "v1.0.0",
+                modeExplore: "Mode Exploration",
+                modeSearchNotes: "Recherche par Notes",
+                modeSearchIntervals: "Recherche par Intervalles",
+                displayNotes: "Affichage : Notes / Intervalles",
+                hideUI: "Cacher l'interface (Zen Mode)",
+                splitView: "Séparer la vue (2 instruments)",
+                toggleDict: "Afficher/Masquer le dictionnaire",
+                fullscreen: "Plein écran",
+                key: "Tonalité:",
+                tabScales: "GAMMES",
+                tabChords: "ACCORDS",
+                dictionary: "Dictionnaire",
+                commonFilter: "Common",
+                selectKey: "Sélectionner la Tonalité",
+                allAny: "Toutes (Any)",
+                cancel: "Annuler",
+                tuningPresets: "Accordages",
+                guitar: "Guitare",
+                bass: "Basse",
+                ukulele: "Ukulélé",
+                piano: "Piano",
+                score: "Partition",
+                close: "Fermer",
+                scaleDictionary: "Dictionnaire de Gammes",
+                chordHarmonization: "Harmonisation",
+                searchByNotes: "Recherche par notes",
+                searchByIntervals: "Recherche par intervalles",
+                resultsCount: "Résultats",
+                addChordSearch: "Ajouter un accord à la recherche",
+                zenModeRestore: "Afficher l'interface"
+            }
+        };
+
+        let currentLang = localStorage.getItem('showMeScales_Lang') || 'en';
+        
+        function t(key) {
+            return TRANSLATIONS[currentLang][key] || key;
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'fr' : 'en';
+            localStorage.setItem('showMeScales_Lang', currentLang);
+            updateUI();
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                el.title = t(key);
+            });
+
+            const btnLang = document.getElementById('btn-lang');
+            btnLang.querySelector('span').textContent = currentLang.toUpperCase();
+        }
 
         // Mappage pour le solfège (0 = C, 1 = D, 2 = E...)
         const BASE_LETTERS = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
@@ -2159,6 +2237,8 @@
         }
 
         function updateUI() {
+            applyTranslations();
+            
             const btnAppMode = document.getElementById('btn-app-mode');
             const btnKey = document.getElementById('btn-key');
             const formulaBar = document.getElementById('formula-bar');
@@ -2188,7 +2268,7 @@
                 scaleName.innerHTML = titleText;
                 scaleName.style.display = "block";
                 formulaBar.style.display = "flex";
-                dictTitle.innerText = AppState.dictTab === 'scales' ? "Dictionnaire de Gammes" : `Harmonisation (${NOTES[AppState.currentKey]} ${AppState.currentScale ? AppState.currentScale.name : ''})`;
+                dictTitle.innerText = AppState.dictTab === 'scales' ? t('scaleDictionary') : `${t('chordHarmonization')} (${NOTES[AppState.currentKey]} ${AppState.currentScale ? AppState.currentScale.name : ''})`;
                 btnKey.innerText = NOTES[AppState.currentKey];
 
                 if (AppState.currentScale) {
@@ -2206,12 +2286,12 @@
                 renderDictionaryGrid();
 
             } else if (AppState.appMode === 'search_notes') {
-                scaleName.innerHTML = "Recherche par notes";
+                scaleName.innerHTML = t('searchByNotes');
                 scaleName.style.display = "block";
                 formulaBar.style.display = "none";
 
                 const noteCount = AppState.selectedNotesSet.size;
-                dictTitle.innerText = AppState.dictTab === 'scales' ? `Résultats (${noteCount} note${noteCount > 1 ? 's' : ''})` : "Ajouter un accord à la recherche";
+                dictTitle.innerText = AppState.dictTab === 'scales' ? `${t('resultsCount')} (${noteCount} note${noteCount > 1 ? 's' : ''})` : t('addChordSearch');
                 btnKey.innerText = AppState.searchKey === null ? "Any" : NOTES[AppState.searchKey];
 
                 if (AppState.dictTab === 'scales') {
@@ -2225,13 +2305,13 @@
                 }
 
             } else if (AppState.appMode === 'search_intervals') {
-                scaleName.innerHTML = "Recherche par intervalles";
+                scaleName.innerHTML = t('searchByIntervals');
                 scaleName.style.display = "block";
                 formulaBar.style.display = "flex";
                 formulaBar.className = 'interactive';
 
                 const intCount = AppState.selectedIntervalsSet.size;
-                dictTitle.innerText = `Résultats (${intCount} intervalle${intCount > 1 ? 's' : ''})`;
+                dictTitle.innerText = `${t('resultsCount')} (${intCount} intervalle${intCount > 1 ? 's' : ''})`;
                 btnKey.innerText = NOTES[AppState.currentKey];
 
                 ALL_INTERVALS.forEach(interval => {
@@ -2594,6 +2674,8 @@
 
         // --- INITIALISATION ---
         window.onload = async () => {
+            applyTranslations();
+            
             // Chargement des gammes
             await initScalesDB();
             loadState();
@@ -2616,6 +2698,7 @@
             document.getElementById('btn-split').addEventListener('click', toggleSplitMode);
             document.getElementById('btn-toggle-dict').addEventListener('click', toggleDictPanel);
             document.getElementById('btn-fullscreen').addEventListener('click', toggleFullScreen);
+            document.getElementById('btn-lang').addEventListener('click', toggleLang);
             document.getElementById('btn-play-audio').addEventListener('click', playCurrentScale);
 
             // Cacher/Restaurer l'interface (Zen Mode)
