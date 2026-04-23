@@ -379,6 +379,7 @@
                     <button class="instrument-btn" id="btn-inst-bass" onclick="setInstrumentType('bass')">Basse</button>
                     <button class="instrument-btn" id="btn-inst-ukulele" onclick="setInstrumentType('ukulele')">Ukulélé</button>
                     <button class="instrument-btn" id="btn-inst-piano" onclick="setInstrumentType('piano')">Piano</button>
+                    <button class="instrument-btn" id="btn-inst-score" onclick="setInstrumentType('score')">Partition</button>
                 </div>
                 <h3 id="tuning-title">Accordages</h3>
                 <div id="tuning-presets-list" style="margin-top: 15px;">
@@ -395,6 +396,10 @@
         const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
         const ALL_INTERVALS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', '#5', '6', 'b7', '7'];
         
+        // Mappage pour le solfège (0 = C, 1 = D, 2 = E...)
+        const BASE_LETTERS = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6]; 
+        const NATURAL_PITCHES = [0, 2, 4, 5, 7, 9, 11]; // Index pitch pour C, D, E, F, G, A, B
+
         const INTERVAL_SEMITONES = {
             '1': 0, 'b2': 1, '2': 2, '#2': 3, 'b3': 3, '3': 4,
             'b4': 4, '4': 5, '#4': 6, 'b5': 6, '5': 7, '#5': 8,
@@ -499,7 +504,17 @@
                 if (!response.ok) throw new Error("Fichier introuvable");
                 const data = await response.json();
                 if (Array.isArray(data) && data.length > 0) {
-                    SCALES_DB = data.filter(s => s.name && s.intervals);
+                    SCALES_DB = data.filter(s => s.name && s.intervals).map(s => {
+                        // SÉCURITÉ: si le flag "common" manque (ex: non exporté en JSON), 
+                        // on regarde s'il existe dans la DB par défaut.
+                        if (s.common === "true" || s.common === 1) s.common = true;
+                        else if (s.common === "false" || s.common === 0) s.common = false;
+                        else if (typeof s.common !== 'boolean') {
+                            const def = DEFAULT_SCALES_DB.find(d => d.name === s.name);
+                            s.common = def ? def.common : false;
+                        }
+                        return s;
+                    });
                 } else {
                     throw new Error("Format JSON invalide");
                 }
@@ -641,10 +656,9 @@
                 this.pegsContainer = this.container.querySelector('.tuning-pegs');
                 this.labelContainer = this.container.querySelector('.instrument-label');
                 
-                // On initialise width/height de façon sécurisée
                 this.width = 0;
                 this.height = 0;
-                this.isCameraInitialized = false; // Flag pour savoir si on a centré la caméra
+                this.isCameraInitialized = false; 
                 this.camera = { x: 0, y: 0, zoom: 1 };
                 this.isDragging = false;
                 this.lastPointer = { x: 0, y: 0 };
@@ -654,7 +668,6 @@
             }
             
             _bindEvents() {
-                // Utilisation de l'API PointerEvents universelle
                 this.canvas.style.touchAction = 'none';
 
                 this.pointerDownHandler = (e) => { 
@@ -699,7 +712,6 @@
             }
 
             destroy() {
-                // Remplace le canvas par un clone propre pour purger les events
                 const newCanvas = this.canvas.cloneNode(false);
                 this.canvas.replaceWith(newCanvas);
                 this.canvas = newCanvas; 
@@ -709,7 +721,6 @@
                 const dpr = window.devicePixelRatio || 1;
                 const rect = this.canvas.parentElement.getBoundingClientRect();
                 
-                // Si la zone est masquée (ex: inst-1 non splitté), on ne fait rien
                 if (rect.width === 0 || rect.height === 0) return;
 
                 this.canvas.width = rect.width * dpr; 
@@ -718,15 +729,12 @@
                 this.width = rect.width; 
                 this.height = rect.height;
 
-                // On initialise la caméra UNIQUEMENT quand on a des vraies dimensions valides
-                // Cela empêche la caméra de se voir assigner la valeur `NaN`
                 if (!this.isCameraInitialized) {
                     if (typeof this.centerCamera === 'function') {
                         this.centerCamera();
                     }
                     this.isCameraInitialized = true;
                 }
-                
                 this.draw();
             }
 
@@ -774,7 +782,7 @@
 
             centerCamera() {
                 this.camera.x = 80; 
-                this.camera.y = this.height / 2; // Maintenant height sera une valeur valide !
+                this.camera.y = this.height / 2; 
                 this.camera.zoom = 1;
             }
 
@@ -1085,12 +1093,200 @@
             }
         }
 
+        class ScoreInstrument extends BaseInstrument {
+            constructor(containerId, index) {
+                super(containerId, index);
+                this.lineSpacing = 20;
+                this.step = this.lineSpacing / 2;
+                this.setupTuningUI();
+            }
+
+            centerCamera() {
+                this.camera.x = 80;
+                this.camera.y = this.height / 2; 
+                this.camera.zoom = 1;
+            }
+
+            setupTuningUI() {
+                this.pegsContainer.innerHTML = '';
+                this.labelContainer.innerText = 'Partition';
+                this.labelContainer.style.display = 'block';
+            }
+
+            // Déduit le bon altération d'une note en fonction de sa place sur la portée
+            getAccidental(staffPos, noteIndex) {
+                let normalizedPos = ((staffPos % 7) + 7) % 7;
+                let naturalPitch = NATURAL_PITCHES[normalizedPos];
+                let diff = (noteIndex - naturalPitch) % 12;
+                if (diff < 0) diff += 12;
+                
+                if (diff === 0) return '';
+                if (diff === 1) return '♯';
+                if (diff === 2) return '𝄪'; // Double dièse
+                if (diff === 11) return '♭';
+                if (diff === 10) return '𝄫'; // Double bémol
+                return '?';
+            }
+
+            handleClick(screenX, screenY) {
+                if (AppState.appMode !== 'search_notes') return;
+                const worldPos = this.screenToWorld(screenX, screenY);
+                const yBottomLine = 40; 
+                
+                let staffPos = Math.round(2 - (worldPos.y - yBottomLine) / this.step);
+                if (staffPos < -5 || staffPos > 15) return; 
+                
+                let normalizedPos = ((staffPos % 7) + 7) % 7;
+                let clickedNote = NATURAL_PITCHES[normalizedPos];
+                
+                if (clickedNote !== undefined) {
+                    if (AppState.selectedNotesSet.has(clickedNote)) AppState.selectedNotesSet.delete(clickedNote);
+                    else AppState.selectedNotesSet.add(clickedNote);
+                    updateUI();
+                }
+            }
+
+            draw() {
+                if (!this.isCameraInitialized) return;
+                super.draw();
+                const ctx = this.ctx; 
+                const activeNotes = AppState.getActiveNotes();
+                
+                ctx.save(); 
+                ctx.scale(this.camera.zoom, this.camera.zoom); 
+                ctx.translate(this.camera.x, this.camera.y);
+
+                const yBottomLine = 40; 
+                const staffWidth = Math.max(1000, this.width / this.camera.zoom + 200);
+
+                // --- 1. Dessiner la portée (5 lignes) ---
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 1.5;
+                for(let i=0; i<5; i++) {
+                    let y = yBottomLine - i * this.lineSpacing;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.camera.x, y); 
+                    ctx.lineTo(staffWidth - this.camera.x, y);
+                    ctx.stroke();
+                }
+
+                // --- 2. Dessiner la clé de Sol ---
+                ctx.font = '85px serif';
+                ctx.fillStyle = '#aaa';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+                // Symbole unicode de la clé de sol
+                ctx.fillText('𝄞', 30, yBottomLine + 6);
+
+                // --- 3. Préparer les notes visuelles (Staff Position) ---
+                let visualNotes = activeNotes.map((note) => {
+                    let staffPos;
+                    if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
+                        staffPos = BASE_LETTERS[note.index];
+                        if (staffPos < BASE_LETTERS[AppState.currentKey]) staffPos += 7; 
+                    } else {
+                        let degreeMatch = note.interval.match(/\d+/);
+                        if (degreeMatch) {
+                            let degree = parseInt(degreeMatch[0]) - 1;
+                            staffPos = BASE_LETTERS[AppState.currentKey] + degree;
+                        } else {
+                            staffPos = BASE_LETTERS[note.index];
+                            if (staffPos < BASE_LETTERS[AppState.currentKey]) staffPos += 7;
+                        }
+                    }
+                    return { ...note, staffPos };
+                });
+
+                if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
+                     visualNotes.sort((a,b) => a.staffPos - b.staffPos);
+                }
+
+                // --- 4. Dessiner les notes ---
+                let startX = 140;
+                let spacingX = 85;
+                
+                visualNotes.forEach((vn, i) => {
+                    let x = startX + i * spacingX;
+                    let y = yBottomLine - (vn.staffPos - 2) * this.step;
+
+                    // Lignes supplémentaires (Ledger lines)
+                    ctx.strokeStyle = '#888';
+                    ctx.lineWidth = 1.5;
+                    if (vn.staffPos <= 0) { // C4 ou plus bas
+                        for(let l = 0; l >= vn.staffPos; l -= 2) {
+                            let ly = yBottomLine - (l - 2) * this.step;
+                            ctx.beginPath(); ctx.moveTo(x-18, ly); ctx.lineTo(x+18, ly); ctx.stroke();
+                        }
+                    } else if (vn.staffPos >= 12) { // A5 ou plus haut
+                        for(let l = 12; l <= vn.staffPos; l += 2) {
+                            let ly = yBottomLine - (l - 2) * this.step;
+                            ctx.beginPath(); ctx.moveTo(x-18, ly); ctx.lineTo(x+18, ly); ctx.stroke();
+                        }
+                    }
+
+                    // Altération
+                    let acc = this.getAccidental(vn.staffPos, vn.index);
+                    if (acc) {
+                        ctx.font = '24px serif';
+                        ctx.fillStyle = '#fff';
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(acc, x - 15, y - 2);
+                    }
+
+                    // Tête de la note
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, 9, 7, -Math.PI / 8, 0, Math.PI * 2);
+                    
+                    if (AppState.appMode === 'search_notes' || AppState.appMode === 'search_intervals') {
+                        ctx.fillStyle = '#ff4d4d';
+                    } else {
+                        if (AppState.dictTab === 'chords' && vn.isChordNote) {
+                            ctx.fillStyle = vn.isChordRoot ? '#d9534f' : '#ff4d4d';
+                        } else {
+                            ctx.fillStyle = vn.isRoot ? '#1f6eb8' : '#e0e0e0'; 
+                        }
+                    }
+                    ctx.fill();
+                    
+                    // Hampe (Stem)
+                    ctx.beginPath();
+                    if (vn.staffPos < 6) {
+                        // Hampe vers le haut (droite)
+                        ctx.moveTo(x + 7, y - 2);
+                        ctx.lineTo(x + 7, y - 40);
+                    } else {
+                        // Hampe vers le bas (gauche)
+                        ctx.moveTo(x - 7, y + 2);
+                        ctx.lineTo(x - 7, y + 40);
+                    }
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = ctx.fillStyle;
+                    ctx.stroke();
+
+                    // Label (Nom de la note ou intervalle) en dessous
+                    ctx.font = '13px sans-serif';
+                    ctx.fillStyle = '#aaa';
+                    ctx.textAlign = 'center';
+                    let text = NOTES[vn.index];
+                    if (AppState.displayMode === 'intervals' || AppState.appMode === 'search_intervals') {
+                        text = vn.interval !== '?' ? vn.interval : text;
+                    }
+                    ctx.fillText(text, x, yBottomLine + 60 + (i%2 === 0 ? 0 : 20)); // Décalage pour éviter les collisions textuelles
+                });
+
+                ctx.restore();
+            }
+        }
+
         function buildInstrument(index) {
             const data = AppState.instrumentsData[index];
             if (instrumentInstances[index]) instrumentInstances[index].destroy();
 
             if (data.type === 'piano') {
                 instrumentInstances[index] = new PianoInstrument(`inst-container-${index}`, index);
+            } else if (data.type === 'score') {
+                instrumentInstances[index] = new ScoreInstrument(`inst-container-${index}`, index);
             } else {
                 instrumentInstances[index] = new FretboardInstrument(`inst-container-${index}`, index);
             }
@@ -1565,6 +1761,7 @@
             document.getElementById('btn-inst-bass').classList.toggle('active', currentType === 'bass');
             document.getElementById('btn-inst-ukulele').classList.toggle('active', currentType === 'ukulele');
             document.getElementById('btn-inst-piano').classList.toggle('active', currentType === 'piano');
+            document.getElementById('btn-inst-score').classList.toggle('active', currentType === 'score');
 
             updateTuningPresetsList(instIndex, currentType);
             document.getElementById('tuning-presets-modal').style.display = 'flex';
@@ -1578,8 +1775,9 @@
             document.getElementById('btn-inst-bass').classList.toggle('active', type === 'bass');
             document.getElementById('btn-inst-ukulele').classList.toggle('active', type === 'ukulele');
             document.getElementById('btn-inst-piano').classList.toggle('active', type === 'piano');
+            document.getElementById('btn-inst-score').classList.toggle('active', type === 'score');
             
-            if (type !== 'piano') {
+            if (type !== 'piano' && type !== 'score') {
                 const presets = TUNING_PRESETS[type];
                 AppState.instrumentsData[instIndex].tuningName = presets[0].name;
                 AppState.instrumentsData[instIndex].tuning = [...presets[0].notes];
@@ -1591,6 +1789,13 @@
             buildInstrument(instIndex);
             updateTuningPresetsList(instIndex, type);
             updateUI(); 
+            
+            // FIX: Forcer le redimensionnement et l'affichage du nouveau canvas créé
+            requestAnimationFrame(() => {
+                if (instrumentInstances[instIndex]) {
+                    instrumentInstances[instIndex].resize();
+                }
+            });
         }
 
         function updateTuningPresetsList(instIndex, type) {
@@ -1599,6 +1804,9 @@
 
             if (type === 'piano') {
                 list.innerHTML = '<div style="color:#aaa; text-align:center; padding: 20px;">Le piano a un accordage standard fixe.</div>';
+                tuningTitle.style.display = 'none';
+            } else if (type === 'score') {
+                list.innerHTML = '<div style="color:#aaa; text-align:center; padding: 20px;">La partition s\'adapte automatiquement (Clé de Sol).</div>';
                 tuningTitle.style.display = 'none';
             } else {
                 tuningTitle.style.display = 'block';
