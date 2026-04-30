@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Générateur d'Accords</title>
+    <!-- Tailwind CSS (avec support dark mode via class) -->
+    <script>
+        tailwind = { config: { darkMode: 'class' } }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- IMPORT DE NOTRE LIBRAIRIE -->
+    <script src="chords_generator.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen p-8 bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+
+    <div class="max-w-6xl mx-auto space-y-12">
+        
+        <!-- HEADER -->
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Générateur de Grilles Multiples</h1>
+            
+            <button onclick="toggleTheme()" class="px-4 py-2 rounded-full bg-white dark:bg-gray-800 shadow text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition">
+                Basculer le Thème
+            </button>
+        </div>
+
+        <!-- EXEMPLE 1 : Grille Guitare -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">🎸 Suite Pop (Guitare)</h2>
+            <div id="grid-guitar"></div>
+        </div>
+
+        <!-- EXEMPLE 2 : Grille Piano -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">🎹 Suite Jazz (Piano - Intervalles)</h2>
+            <div id="grid-piano"></div>
+        </div>
+
+        <!-- EXEMPLE 3 : Grille Partition -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">🎼 Suite Complexe (Partition avec Slash Chords)</h2>
+            <div id="grid-staff"></div>
+        </div>
+
+        <!-- EXEMPLE 4 : Accordage Personnalisé (Array) -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">🪕 Luth Imaginaire (Accordage via un Array Custom)</h2>
+            <div id="grid-custom"></div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT D'INITIALISATION DE L'UI -->
+    <script>
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            initGrids(); // Force le rafraîchissement des canvas pour le nouveau thème
+        }
+
+        function initGrids() {
+            // Instanciation 1 : Guitare Classique
+            new ChordGenerator('#grid-guitar', 'G, D/F#, Em, C, Cm', {
+                tuning: 'guitar_standard',
+                renderType: 'instrument',
+                displayMode: 'notes',
+                size: 100
+            });
+
+            // Instanciation 2 : Piano avec affichage d'intervalles
+            new ChordGenerator('#grid-piano', 'Dm9, G7, Cmaj7, Am7', {
+                tuning: 'piano',
+                renderType: 'instrument',
+                displayMode: 'intervals',
+                size: 180
+            });
+
+            // Instanciation 3 : Partition pure
+            new ChordGenerator('#grid-staff', 'C/G, Fmaj7, E/G#, Am, Gsus4, G', {
+                tuning: 'guitar_standard',
+                renderType: 'staff',
+                displayMode: 'notes',
+                size: 180
+            });
+
+            // Instanciation 4 : L'accordage est passé sous forme de tableau MIDI Custom !
+            // Ici un "Open C Majeur" grave (C-G-C-G-C-E)
+            new ChordGenerator('#grid-custom', 'C, F, G, C', {
+                tuning: [36, 43, 48, 55, 60, 64], 
+                customTuningName: 'Guitare Magique (C-G-C-G-C-E)',
+                renderType: 'instrument',
+                displayMode: 'notes',
+                size: 180
+            });
+        }
+
+        window.onload = initGrids;
+    </script>
+</body>
+</html>
