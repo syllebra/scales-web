@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur Algorithmique d'Accords</title>
+    <!-- Configuration de Tailwind pour le mode sombre (basé sur une classe CSS) -->
+    <script>
+        tailwind = {
+            config: {
+                darkMode: 'class',
+            }
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        canvas { max-width: 100%; height: auto; }
+        /* Transition douce pour le changement de thème */
+        *, ::before, ::after {
+            transition-property: background-color, border-color, color, fill, stroke;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-5xl transition-colors duration-300 relative">
+        
+        <!-- Bouton Thème Sombre / Clair -->
+        <button id="theme-toggle" class="absolute top-6 right-6 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 outline-none transition">
+            <!-- Icône Soleil (claire) / Lune (sombre) gérée en JS -->
+            <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+        </button>
+
+        <h1 id="main-title" class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6 text-center">Générateur & Filtre Ergonomique d'Accords</h1>
+
+        <!-- Onglets -->
+        <div id="tabs-container" class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+            <button id="tab-explorer" class="py-2 px-4 text-blue-600 dark:text-blue-400 font-medium border-b-2 border-blue-600 dark:border-blue-400 outline-none">Explorateur</button>
+            <button id="tab-grid" class="py-2 px-4 text-gray-500 dark:text-gray-400 font-medium hover:text-gray-700 dark:hover:text-gray-300 outline-none">Grille d'accords</button>
+        </div>
+
+        <!-- VUE EXPLORATEUR -->
+        <div id="view-explorer">
+            <!-- Contrôles -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instrument / Accordage</label>
+                    <select id="tuning-select" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="guitar_standard">Guitare Standard (E A D G B E)</option>
+                        <option value="guitar_drop_d">Guitare Drop D (D A D G B E)</option>
+                        <option value="guitar_open_g">Guitare Open G (D G D G B D)</option>
+                        <option value="ukulele_standard">Ukulélé (G C E A)</option>
+                        <option value="bass_standard">Basse (E A D G)</option>
+                        <option value="piano">Piano / Clavier</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note Fondamentale</label>
+                    <select id="root-select" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="0">C (Do)</option>
+                        <option value="1">C# / Db</option>
+                        <option value="2">D (Ré)</option>
+                        <option value="3">D# / Eb</option>
+                        <option value="4">E (Mi)</option>
+                        <option value="5">F (Fa)</option>
+                        <option value="6">F# / Gb</option>
+                        <option value="7">G (Sol)</option>
+                        <option value="8">G# / Ab</option>
+                        <option value="9">A (La)</option>
+                        <option value="10">A# / Bb</option>
+                        <option value="11">B (Si)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type d'Accord</label>
+                    <select id="chord-type-select" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="major">Majeur</option>
+                        <option value="minor">Mineur (m)</option>
+                        <option value="7">Septième (7)</option>
+                        <option value="m7">Mineur 7 (m7)</option>
+                        <option value="maj7">Majeur 7 (maj7)</option>
+                        <option value="9">Neuvième (9)</option>
+                        <option value="m9">Mineur 9 (m9)</option>
+                        <option value="maj9">Majeur 9 (maj9)</option>
+                        <option value="sus4">Sus 4</option>
+                        <option value="dim">Diminué (dim)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Affichage</label>
+                    <select id="display-mode-select" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="notes">Nom des notes</option>
+                        <option value="intervals">Intervalles (ex: 3b, 5)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Informations sur l'accord -->
+            <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4 rounded-lg mb-6 text-center">
+                <h2 id="chord-name-display" class="text-xl font-bold text-gray-800 dark:text-gray-100">C Majeur</h2>
+                <p id="chord-notes-display" class="text-sm text-gray-500 dark:text-gray-300 mt-1">Notes : C, E, G</p>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <!-- Conteneur flex pour afficher Manche ET Partition côte à côte -->
+                <div class="flex flex-wrap justify-center gap-6 w-full">
+                    <div class="relative bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <canvas id="fretboard" width="400" height="350"></canvas>
+                    </div>
+                    
+                    <div class="relative bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                        <canvas id="staff-canvas" width="300" height="350"></canvas>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4 mt-6">
+                    <button id="btn-prev" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition disabled:opacity-50">Précédent</button>
+                    <span id="variant-counter" class="text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[100px] text-center">1 / 1</span>
+                    <button id="btn-next" class="px-4 py-2 bg-gray-800 dark:bg-gray-200 hover:bg-gray-900 dark:hover:bg-gray-300 text-white dark:text-gray-900 rounded-lg font-medium transition disabled:opacity-50">Suivant</button>
+                </div>
+                <p id="score-display" class="text-xs text-gray-400 dark:text-gray-500 mt-2">Score de difficulté : 0</p>
+            </div>
+        </div>
+
+        <!-- VUE GRILLE -->
+        <div id="view-grid" class="hidden">
+            <div id="grid-controls" class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Saisissez une suite d'accords (séparés par des virgules)</label>
+                <div class="flex flex-col md:flex-row gap-2">
+                    <input type="text" id="chord-sequence" placeholder="Ex: C, G, Am, F, Dm7, G7" class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500" value="C, G, Am, F">
+                    <button id="btn-generate-grid" class="px-4 py-2 bg-gray-800 dark:bg-gray-200 hover:bg-gray-900 dark:hover:bg-gray-300 text-white dark:text-gray-900 rounded-lg font-medium transition">Générer</button>
+                </div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mt-3 gap-3">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Types supportés : m, 7, m7, maj7, 9, m9, maj9, sus4, dim</p>
+                    
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+                        <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <label class="text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wide">Vue</label>
+                            <select id="grid-render-type" class="bg-transparent text-sm text-gray-700 dark:text-gray-200 outline-none cursor-pointer">
+                                <option value="instrument">Instrument</option>
+                                <option value="staff">Partition</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <label class="text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wide">Affichage</label>
+                            <select id="grid-display-mode-select" class="bg-transparent text-sm text-gray-700 dark:text-gray-200 outline-none cursor-pointer">
+                                <option value="notes">Notes</option>
+                                <option value="intervals">Intervalles</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <label class="text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wide">Taille</label>
+                            <input type="range" id="grid-size-slider" min="120" max="350" value="200" class="w-20 md:w-28 accent-gray-700 dark:accent-gray-300 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteneur de la grille -->
+            <div id="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+                <!-- Les accords de la grille seront injectés ici -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GESTION DU THÈME SOMBRE ---
+        let isDarkMode = false;
+
+        function initTheme() {
+            try {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    isDarkMode = true;
+                    document.documentElement.classList.add('dark');
+                }
+            } catch(e) { } // Ignore iframe sandbox errors for localStorage
+            updateThemeIcon();
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+                try { localStorage.theme = 'dark'; } catch(e) {}
+            } else {
+                document.documentElement.classList.remove('dark');
+                try { localStorage.theme = 'light'; } catch(e) {}
+            }
+            updateThemeIcon();
+            
+            // Rafraîchir les dessins Canvas avec les nouvelles couleurs
+            updateUI();
+            if (!document.getElementById('view-grid').classList.contains('hidden') && gridState.length > 0) {
+                for(let i=0; i<gridState.length; i++) {
+                    if(gridState[i]) renderGridCard(i);
+                }
+            }
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('theme-icon');
+            if (isDarkMode) {
+                // Icône Soleil
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />';
+            } else {
+                // Icône Lune
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />';
+            }
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        initTheme(); // Initialisation au chargement
+
+        // --- PALETTES DE COULEURS POUR CANVAS ---
+        function getCanvasColors() {
+            return isDarkMode ? {
+                bg: '#1f2937',          // bg-gray-800
+                fret: '#4b5563',        // border-gray-600
+                fretNum: '#9ca3af',     // text-gray-400
+                nut: '#d1d5db',         // text-gray-300
+                string: '#4b5563',      // border-gray-600
+                stringText: '#9ca3af',  // text-gray-400
+                barre: 'rgba(156, 163, 175, 0.3)', 
+                marker: '#f3f4f6',      // text-gray-100
+                markerText: '#1f2937',  // text-gray-800
+                noteText: '#d1d5db',    // text-gray-300
+                pianoWhite: '#374151',
+                pianoStroke: '#1f2937',
+                pianoBlack: '#111827',
+                staffLine: '#4b5563',
+                staffClef: '#9ca3af'
+            } : {
+                bg: '#fafafa',
+                fret: '#9ca3af',
+                fretNum: '#4b5563',
+                nut: '#374151',
+                string: '#d1d5db',
+                stringText: '#9ca3af',
+                barre: 'rgba(75, 85, 99, 0.4)',
+                marker: '#1f2937',
+                markerText: 'white',
+                noteText: '#374151',
+                pianoWhite: 'white',
+                pianoStroke: '#4b5563',
+                pianoBlack: '#1f2937',
+                staffLine: '#9ca3af',
+                staffClef: '#6b7280'
+            };
+        }
+
+        // --- 1. DONNÉES THÉORIQUES ---
+        const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const INTERVAL_NAMES = ["1", "2b", "2", "3b", "3", "4", "5b", "5", "5#", "6", "7b", "7"];
+        
+        const CHORD_FORMULAS = {
+            "major": [0, 4, 7], "minor": [0, 3, 7], "7": [0, 4, 7, 10], "m7": [0, 3, 7, 10],
+            "maj7": [0, 4, 7, 11], "9": [0, 4, 7, 10, 2], "m9": [0, 3, 7, 10, 2],
+            "maj9": [0, 4, 7, 11, 2], "sus4": [0, 5, 7], "dim": [0, 3, 6]
+        };
+
+        const TUNINGS = {
+            "guitar_standard": [40, 45, 50, 55, 59, 64],
+            "guitar_drop_d": [38, 45, 50, 55, 59, 64],
+            "guitar_open_g": [38, 43, 50, 55, 59, 62],
+            "ukulele_standard": [67, 60, 64, 69],
+            "bass_standard": [28, 33, 38, 43]
+        };
+
+        let currentVariants = [];
+        let currentIndex = 0;
+        let gridState = [];
+
+        // --- 2. LOGIQUE MUSICALE ET GÉNÉRATION ---
+        function getChordNotes(rootNote, formulaName) {
+            const formula = CHORD_FORMULAS[formulaName];
+            return formula.map(interval => (rootNote + interval) % 12);
+        }
+
+        function getNoteName(noteIndex) { return NOTE_NAMES[noteIndex % 12]; }
+
+        function getLabel(noteIndex, rootNote, mode) {
+            if (mode === 'intervals') {
+                let diff = (noteIndex - rootNote + 12) % 12;
+                return INTERVAL_NAMES[diff];
+            }
+            return getNoteName(noteIndex);
+        }
+
+        function generatePianoVoicings(rootNote, chordType) {
+            let voicings = [];
+            let baseMidi = 60 + rootNote;
+            let formula = CHORD_FORMULAS[chordType];
+            
+            let v1 = formula.map(interval => baseMidi + interval);
+            voicings.push({ isPiano: true, notes: v1, actualNotes: v1.map(n => n % 12), absoluteNotes: v1, score: 0 });
+
+            if (v1.length >= 3) {
+                let v2 = [...v1]; v2.push(v2.shift() + 12);
+                voicings.push({ isPiano: true, notes: v2, actualNotes: v2.map(n => n % 12), absoluteNotes: v2, score: 1 });
+            }
+
+            if (v1.length >= 3) {
+                let v3 = [...voicings[1].notes]; v3.push(v3.shift() + 12);
+                voicings.push({ isPiano: true, notes: v3, actualNotes: v3.map(n => n % 12), absoluteNotes: v3, score: 2 });
+            }
+            return voicings;
+        }
+
+        function generateVoicings(tuningKey, rootNote, chordType) {
+            if (tuningKey === 'piano') return generatePianoVoicings(rootNote, chordType);
+
+            const tuning = TUNINGS[tuningKey];
+            const targetNotes = getChordNotes(rootNote, chordType);
+            const numStrings = tuning.length;
+            const maxFret = 14; 
+            const maxFretSpan = 3;
+
+            let voicings = [];
+
+            for (let baseFret = 0; baseFret <= maxFret - maxFretSpan; baseFret++) {
+                let possibleFretsPerString = [];
+                for (let s = 0; s < numStrings; s++) {
+                    let openNote = tuning[s] % 12;
+                    let validFretsForString = [-1];
+                    for (let f = 0; f <= maxFret; f++) {
+                        if (f === 0 || (f >= baseFret && f <= baseFret + maxFretSpan)) {
+                            let noteAtFret = (openNote + f) % 12;
+                            if (targetNotes.includes(noteAtFret)) validFretsForString.push(f);
+                        }
+                    }
+                    possibleFretsPerString.push(validFretsForString);
+                }
+
+                let combinations = [[]];
+                for (let s = 0; s < numStrings; s++) {
+                    let temp = [];
+                    for (let c of combinations) {
+                        for (let f of possibleFretsPerString[s]) temp.push([...c, f]);
+                    }
+                    combinations = temp;
+                }
+
+                for (let voicing of combinations) {
+                    let evaluated = evaluateFingering(voicing, targetNotes, rootNote, tuning);
+                    if (evaluated.valid) {
+                        if (!voicings.some(v => v.frets.join(',') === voicing.join(','))) {
+                            voicings.push({ frets: voicing, ...evaluated });
+                        }
+                    }
+                }
+            }
+            voicings.sort((a, b) => a.score - b.score);
+            return voicings;
+        }
+
+        // --- 3. L'ALGORITHME DE FILTRAGE ERGONOMIQUE ET DOIGTÉ ---
+        function evaluateFingering(frets, targetNotes, rootNote, tuning) {
+            let playedFrets = frets.filter(f => f > -1);
+            if (playedFrets.length === 0) return { valid: false };
+
+            let presentNotes = new Set();
+            let actualNotes = [];
+            let absoluteNotes = []; 
+            let lowestStringPlayed = -1;
+            let lowestNotePlayed = -1;
+
+            for (let i = 0; i < frets.length; i++) {
+                if (frets[i] > -1) {
+                    let note = (tuning[i] + frets[i]) % 12;
+                    let absNote = tuning[i] + frets[i];
+                    presentNotes.add(note);
+                    actualNotes.push(note);
+                    absoluteNotes.push(absNote);
+                    if (lowestStringPlayed === -1) {
+                        lowestStringPlayed = i;
+                        lowestNotePlayed = note;
+                    }
+                } else {
+                    actualNotes.push(-1);
+                    absoluteNotes.push(-1);
+                }
+            }
+
+            let missingNotes = targetNotes.filter(n => !presentNotes.has(n));
+            let isValidNotes = missingNotes.length === 0;
+
+            if (!isValidNotes && targetNotes.length >= 5) {
+                let perfectFifth = (rootNote + 7) % 12;
+                if (missingNotes.length === 1 && missingNotes[0] === perfectFifth) isValidNotes = true;
+            }
+            if (!isValidNotes) return { valid: false };
+
+            let playingStarted = false;
+            let hasInsideMute = false;
+            let lastPlayedIndex = -1;
+            for(let i=0; i<frets.length; i++) if(frets[i] > -1) lastPlayedIndex = i;
+            for (let i = 0; i < frets.length; i++) {
+                if (frets[i] > -1) playingStarted = true;
+                if (playingStarted && frets[i] === -1 && i < lastPlayedIndex) hasInsideMute = true;
+            }
+            if (hasInsideMute) return { valid: false };
+
+            let fretsNotOpen = playedFrets.filter(f => f > 0);
+            if (fretsNotOpen.length === 0) return { valid: true, score: 0, fingering: frets.map(f => f > 0 ? 0 : 0), barre: null, actualNotes, absoluteNotes };
+
+            let minFret = Math.min(...fretsNotOpen);
+            let maxFret = Math.max(...fretsNotOpen);
+            let span = maxFret - minFret;
+            if (span > 3) return { valid: false }; 
+
+            let barre = null;
+            let fingerCountRequired = 0;
+            let fingers = new Array(frets.length).fill(0);
+            
+            let stringsAtMinFret = [];
+            for (let i = 0; i < frets.length; i++) if (frets[i] === minFret) stringsAtMinFret.push(i);
+
+            if (stringsAtMinFret.length > 1) {
+                let firstStr = stringsAtMinFret[0];
+                let lastStr = stringsAtMinFret[stringsAtMinFret.length - 1];
+                let validBarre = true;
+                for (let i = firstStr; i <= lastStr; i++) if (frets[i] === 0) validBarre = false;
+
+                if (validBarre) {
+                    barre = { fret: minFret, startString: firstStr, endString: lastStr };
+                    for (let i = firstStr; i <= lastStr; i++) if (frets[i] === minFret) fingers[i] = 1;
+                    fingerCountRequired = 1;
+                }
+            }
+
+            let remainingNotesToFinger = [];
+            for (let i = 0; i < frets.length; i++) {
+                if (frets[i] > 0 && fingers[i] === 0) remainingNotesToFinger.push({ string: i, fret: frets[i] });
+            }
+            remainingNotesToFinger.sort((a, b) => {
+                if (a.fret !== b.fret) return a.fret - b.fret;
+                return a.string - b.string;
+            });
+
+            let currentFinger = barre ? 2 : 1;
+            for (let note of remainingNotesToFinger) {
+                fingers[note.string] = currentFinger;
+                currentFinger++;
+                fingerCountRequired++;
+            }
+            if (fingerCountRequired > 4) return { valid: false };
+
+            let score = 0;
+            score += minFret * 0.5;
+            score += span * 1;
+            if (barre) score += 2;
+            if (lowestNotePlayed !== rootNote) score += 4;
+            score += frets.filter(f => f === -1).length * 0.5;
+
+            return { valid: true, score: score.toFixed(1), fingering: fingers, barre: barre, actualNotes, absoluteNotes };
+        }
+
+        // --- 4. MOTEUR DE RENDU CANVAS ---
+        function drawStaff(chordData, canvas) {
+            const ctx = canvas.getContext('2d');
+            const cols = getCanvasColors();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padX = 40;
+            const width = canvas.width;
+            const lineSpacing = 16; 
+            const halfSpace = lineSpacing / 2;
+            const centerY = canvas.height / 2; 
+
+            // Fond
+            ctx.fillStyle = cols.bg;
+            ctx.fillRect(padX - 20, 10, width - 2*padX + 40, canvas.height - 20);
+
+            ctx.strokeStyle = cols.staffLine;
+            ctx.lineWidth = 1.5;
+
+            ctx.beginPath();
+            for (let d of [2, 4, 6, 8, 10]) { 
+                let y = centerY - d * halfSpace;
+                ctx.moveTo(padX, y); ctx.lineTo(width - padX, y);
+            }
+            for (let d of [-2, -4, -6, -8, -10]) { 
+                let y = centerY - d * halfSpace;
+                ctx.moveTo(padX, y); ctx.lineTo(width - padX, y);
+            }
+            ctx.moveTo(padX, centerY - 10 * halfSpace);
+            ctx.lineTo(padX, centerY - (-10) * halfSpace);
+            ctx.stroke();
+
+            ctx.fillStyle = cols.staffClef;
+            ctx.font = '50px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('𝄞', padX + 20, centerY - 6 * halfSpace); 
+            ctx.fillText('𝄢', padX + 20, centerY + 6 * halfSpace);
+
+            if (!chordData || !chordData.absoluteNotes) return;
+
+            let uniqueNotes = [...new Set(chordData.absoluteNotes.filter(n => n > -1))].sort((a,b) => a-b);
+            let diatonicMap = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
+            let startX = width / 2;
+            let previousD = -999;
+            let currentX = startX;
+
+            ctx.fillStyle = cols.marker;
+            ctx.strokeStyle = cols.marker;
+            ctx.lineWidth = 2.5;
+
+            uniqueNotes.forEach(midi => {
+                let octave = Math.floor(midi / 12) - 5; 
+                let noteClass = midi % 12;
+                let isSharp = [1, 3, 6, 8, 10].includes(noteClass);
+                
+                let d = octave * 7 + diatonicMap[noteClass];
+                let y = centerY - d * halfSpace;
+
+                if (Math.abs(d - previousD) <= 1) {
+                    currentX += 18; 
+                } else {
+                    currentX = startX; 
+                }
+                previousD = d;
+
+                ctx.beginPath();
+                ctx.ellipse(currentX, y, 9, 6.5, -Math.PI/8, 0, Math.PI*2);
+                ctx.fill();
+
+                let drawLedger = (lineD) => {
+                    let ly = centerY - lineD * halfSpace;
+                    ctx.beginPath();
+                    ctx.moveTo(currentX - 16, ly);
+                    ctx.lineTo(currentX + 16, ly);
+                    ctx.stroke();
+                };
+
+                if (d === 0) drawLedger(0); 
+                if (d >= 12) for (let ld = 12; ld <= d; ld += 2) drawLedger(ld);
+                if (d <= -12) for (let ld = -12; ld >= d; ld -= 2) drawLedger(ld);
+
+                if (isSharp) {
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('♯', currentX - 14, y);
+                }
+            });
+        }
+
+        function drawPiano(chordData, canvas, rootNote, displayMode = 'notes') {
+            const ctx = canvas.getContext('2d');
+            const cols = getCanvasColors();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const minNote = Math.min(...chordData.notes);
+            const maxNote = Math.max(...chordData.notes);
+            const baseC = Math.floor(minNote / 12) * 12; 
+            let topC = Math.ceil((maxNote + 1) / 12) * 12;
+            let numOctaves = (topC - baseC) / 12;
+            if (numOctaves < 2) numOctaves = 2; 
+
+            const numWhiteKeys = numOctaves * 7 + 1; 
+            const padX = 20;
+            const keyWidth = (canvas.width - 2 * padX) / numWhiteKeys;
+            const keyHeight = 160;
+            const startY = (canvas.height - keyHeight) / 2;
+
+            ctx.fillStyle = cols.pianoWhite;
+            ctx.strokeStyle = cols.pianoStroke;
+            ctx.lineWidth = 2;
+            
+            for (let i = 0; i < numWhiteKeys; i++) {
+                ctx.fillRect(padX + i * keyWidth, startY, keyWidth, keyHeight);
+                ctx.strokeRect(padX + i * keyWidth, startY, keyWidth, keyHeight);
+            }
+
+            const blackKeyWidth = keyWidth * 0.55;
+            const blackKeyHeight = keyHeight * 0.6;
+            ctx.fillStyle = cols.pianoBlack;
+            
+            for (let oct = 0; oct < numOctaves; oct++) {
+                const borders = [1, 2, 4, 5, 6]; 
+                borders.forEach(border => {
+                    let x = padX + (oct * 7 + border) * keyWidth - blackKeyWidth / 2;
+                    ctx.fillRect(x, startY, blackKeyWidth, blackKeyHeight);
+                });
+            }
+
+            const keyCenters = [0.5, 1, 1.5, 2, 2.5, 3.5, 4, 4.5, 5, 5.5, 6, 6.5];
+            
+            chordData.notes.forEach(note => {
+                let relativeNote = note - baseC;
+                let octave = Math.floor(relativeNote / 12);
+                let noteInOct = relativeNote % 12;
+                
+                let isBlack = [1, 3, 6, 8, 10].includes(noteInOct);
+                let cx = padX + (octave * 7 * keyWidth) + (keyCenters[noteInOct] * keyWidth);
+                let cy = isBlack ? startY + blackKeyHeight - 24 : startY + keyHeight - 32;
+                
+                let isRoot = (note % 12) === rootNote;
+                
+                ctx.fillStyle = cols.marker;
+                ctx.beginPath();
+                if (isRoot) {
+                    if (ctx.roundRect) ctx.roundRect(cx - 14, cy - 14, 28, 28, 4);
+                    else ctx.rect(cx - 14, cy - 14, 28, 28);
+                } else {
+                    ctx.arc(cx, cy, 14, 0, Math.PI * 2); 
+                }
+                ctx.fill();
+
+                ctx.fillStyle = cols.markerText;
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                let labelText = getLabel(note % 12, rootNote, displayMode);
+                ctx.fillText(labelText, cx, cy + 1);
+            });
+        }
+
+        function drawChord(chordData, tuningKey, canvas, rootNote, displayMode = 'notes') {
+            const ctx = canvas.getContext('2d');
+            const cols = getCanvasColors();
+            const frets = chordData.frets;
+            const tuning = TUNINGS[tuningKey];
+            const numStrings = tuning.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padX = canvas.width > 300 ? 50 : 30;
+            const padTop = canvas.height > 300 ? 60 : 45;
+            const padBottom = 40;
+            const stringSpacing = (canvas.width - 2 * padX) / (numStrings - 1);
+            
+            let playedFrets = frets.filter(f => f > 0);
+            let minFretDisplay = 1;
+            let numFretsDisplay = 4;
+
+            if (playedFrets.length > 0) {
+                let actualMin = Math.min(...playedFrets);
+                let actualMax = Math.max(...playedFrets);
+                if (actualMin > 2) {
+                    minFretDisplay = actualMin;
+                    numFretsDisplay = Math.max(4, actualMax - actualMin + 1);
+                }
+            }
+            const fretSpacing = (canvas.height - padTop - padBottom) / numFretsDisplay;
+
+            ctx.fillStyle = cols.bg;
+            ctx.fillRect(padX - 10, padTop, canvas.width - 2*padX + 20, canvas.height - padTop - padBottom);
+
+            ctx.strokeStyle = cols.fret; 
+            ctx.lineWidth = 4; 
+            for (let i = 0; i <= numFretsDisplay; i++) {
+                let y = padTop + i * fretSpacing;
+                ctx.beginPath();
+                ctx.moveTo(padX, y);
+                ctx.lineTo(canvas.width - padX, y);
+                ctx.stroke();
+
+                if (i > 0) {
+                    ctx.fillStyle = cols.fretNum; 
+                    ctx.font = 'bold 22px sans-serif'; 
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    let fretNum = minFretDisplay + i - 1;
+                    ctx.fillText(fretNum, padX - 12, y - fretSpacing / 2); 
+                }
+            }
+
+            if (minFretDisplay === 1) {
+                ctx.strokeStyle = cols.nut; 
+                ctx.lineWidth = 8; 
+                ctx.beginPath();
+                ctx.moveTo(padX, padTop);
+                ctx.lineTo(canvas.width - padX, padTop);
+                ctx.stroke();
+            }
+
+            for (let i = 0; i < numStrings; i++) {
+                let x = padX + i * stringSpacing;
+                let stringThickness = 1 + (numStrings - i) * 0.5;
+                if (tuningKey === 'ukulele_standard') stringThickness = 2; 
+
+                ctx.strokeStyle = cols.string;
+                ctx.lineWidth = stringThickness;
+                ctx.beginPath();
+                ctx.moveTo(x, padTop);
+                ctx.lineTo(x, canvas.height - padBottom);
+                ctx.stroke();
+
+                ctx.fillStyle = cols.stringText;
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(getNoteName(tuning[i]), x, canvas.height - 15);
+            }
+
+            if (chordData.barre && chordData.barre.fret >= minFretDisplay) {
+                let barre = chordData.barre;
+                let startX = padX + barre.startString * stringSpacing;
+                let endX = padX + barre.endString * stringSpacing;
+                let y = padTop + (barre.fret - minFretDisplay) * fretSpacing + fretSpacing / 2;
+
+                ctx.fillStyle = cols.barre;
+                let radius = 22; 
+                ctx.beginPath();
+                ctx.moveTo(startX, y - radius);
+                ctx.lineTo(endX, y - radius);
+                ctx.arc(endX, y, radius, -Math.PI/2, Math.PI/2);
+                ctx.lineTo(startX, y + radius);
+                ctx.arc(startX, y, radius, Math.PI/2, -Math.PI/2);
+                ctx.fill();
+            }
+
+            for (let i = 0; i < numStrings; i++) {
+                let fret = frets[i];
+                let x = padX + i * stringSpacing;
+
+                if (fret === -1) {
+                    ctx.strokeStyle = cols.marker; 
+                    ctx.lineWidth = 3; 
+                    ctx.beginPath();
+                    let size = 10; 
+                    let y = padTop - 20;
+                    ctx.moveTo(x - size, y - size); ctx.lineTo(x + size, y + size);
+                    ctx.moveTo(x + size, y - size); ctx.lineTo(x - size, y + size);
+                    ctx.stroke();
+                } else if (fret === 0) {
+                    ctx.strokeStyle = cols.marker; 
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(x, padTop - 20, 10, 0, Math.PI * 2); 
+                    ctx.stroke();
+                } else if (fret >= minFretDisplay) {
+                    let y = padTop + (fret - minFretDisplay) * fretSpacing + fretSpacing / 2;
+                    let isRoot = chordData.actualNotes[i] === rootNote;
+                    
+                    ctx.fillStyle = cols.marker; 
+                    ctx.beginPath();
+                    
+                    if (isRoot) {
+                        if (ctx.roundRect) {
+                            ctx.roundRect(x - 22, y - 22, 44, 44, 8);
+                        } else {
+                            ctx.rect(x - 22, y - 22, 44, 44);
+                        }
+                    } else {
+                        ctx.arc(x, y, 22, 0, Math.PI * 2);
+                    }
+                    ctx.fill();
+
+                    let fingerNum = chordData.fingering[i];
+                    if (fingerNum > 0) {
+                        ctx.fillStyle = cols.markerText;
+                        ctx.font = 'bold 18px sans-serif'; 
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(fingerNum, x, y + 2);
+                    }
+                }
+
+                if (fret > -1) {
+                    ctx.fillStyle = cols.noteText; 
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.textAlign = 'center';
+                    
+                    let labelText = getLabel(chordData.actualNotes[i], rootNote, displayMode);
+                    ctx.fillText(labelText, x, canvas.height - 20); 
+                }
+            }
+        }
+
+        // --- 5. LIAISON UI / LOGIQUE ---
+        function updateUI() {
+            const rootNote = parseInt(document.getElementById('root-select').value);
+            const chordType = document.getElementById('chord-type-select').value;
+            const tuningKey = document.getElementById('tuning-select').value;
+
+            const typeText = document.getElementById('chord-type-select').options[document.getElementById('chord-type-select').selectedIndex].text;
+            document.getElementById('chord-name-display').innerText = `${getNoteName(rootNote)} ${typeText.replace(/\(.*\)/,'')}`;
+            
+            const targetNotes = getChordNotes(rootNote, chordType);
+            const notesNames = targetNotes.map(n => getNoteName(n)).join(' - ');
+            document.getElementById('chord-notes-display').innerText = `Notes théoriques : ${notesNames}`;
+
+            currentVariants = generateVoicings(tuningKey, rootNote, chordType);
+            
+            if (currentVariants.length === 0) {
+                document.getElementById('variant-counter').innerText = "0 / 0";
+                document.getElementById('score-display').innerText = "Aucune position ergonomique trouvée.";
+                
+                const canvasFret = document.getElementById('fretboard');
+                const ctxFret = canvasFret.getContext('2d');
+                ctxFret.clearRect(0, 0, canvasFret.width, canvasFret.height);
+                ctxFret.fillStyle = isDarkMode ? '#9ca3af' : '#6b7280'; 
+                ctxFret.font = '16px sans-serif'; ctxFret.textAlign = 'center';
+                ctxFret.fillText("Aucune position possible", canvasFret.width/2, canvasFret.height/2);
+                
+                const canvasStaff = document.getElementById('staff-canvas');
+                const ctxStaff = canvasStaff.getContext('2d');
+                ctxStaff.clearRect(0, 0, canvasStaff.width, canvasStaff.height);
+                
+                document.getElementById('btn-prev').disabled = true;
+                document.getElementById('btn-next').disabled = true;
+                return;
+            }
+
+            currentIndex = 0;
+            renderCurrentVariant();
+            
+            if (!document.getElementById('view-grid').classList.contains('hidden')) {
+                generateGrid();
+            }
+        }
+
+        function renderCurrentVariant() {
+            if (currentVariants.length === 0) return;
+            
+            const variant = currentVariants[currentIndex];
+            const tuningKey = document.getElementById('tuning-select').value;
+            const rootNote = parseInt(document.getElementById('root-select').value);
+            const displayMode = document.getElementById('display-mode-select').value;
+            
+            // Rendu principal
+            const canvas = document.getElementById('fretboard');
+            const isPiano = tuningKey === 'piano';
+            canvas.width = isPiano ? 500 : 400;
+            canvas.height = isPiano ? 220 : 350;
+            
+            if (isPiano) {
+                drawPiano(variant, canvas, rootNote, displayMode);
+            } else {
+                drawChord(variant, tuningKey, canvas, rootNote, displayMode);
+            }
+
+            // Rendu Partition Simultané
+            const staffCanvas = document.getElementById('staff-canvas');
+            drawStaff(variant, staffCanvas);
+            
+            document.getElementById('variant-counter').innerText = `${currentIndex + 1} / ${currentVariants.length}`;
+            let diffTxt = isPiano ? "Renversement" : "Score de difficulté algorithmique";
+            document.getElementById('score-display').innerText = `${diffTxt} : ${variant.score}`;
+
+            document.getElementById('btn-prev').disabled = currentIndex === 0;
+            document.getElementById('btn-next').disabled = currentIndex === currentVariants.length - 1;
+        }
+
+        document.getElementById('tuning-select').addEventListener('change', updateUI);
+        document.getElementById('root-select').addEventListener('change', updateUI);
+        document.getElementById('chord-type-select').addEventListener('change', updateUI);
+        document.getElementById('display-mode-select').addEventListener('change', updateUI);
+
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCurrentVariant();
+            }
+        });
+
+        document.getElementById('btn-next').addEventListener('click', () => {
+            if (currentIndex < currentVariants.length - 1) {
+                currentIndex++;
+                renderCurrentVariant();
+            }
+        });
+
+        // --- 6. GESTION DES ONGLETS ET DE LA GRILLE ---
+        const tabExplorer = document.getElementById('tab-explorer');
+        const tabGrid = document.getElementById('tab-grid');
+        const viewExplorer = document.getElementById('view-explorer');
+        const viewGrid = document.getElementById('view-grid');
+
+        tabExplorer.addEventListener('click', () => {
+            viewExplorer.classList.remove('hidden');
+            viewGrid.classList.add('hidden');
+            tabExplorer.classList.replace('text-gray-500', 'text-blue-600');
+            tabExplorer.classList.replace('dark:text-gray-400', 'dark:text-blue-400');
+            tabExplorer.classList.replace('hover:text-gray-700', 'border-b-2');
+            tabExplorer.classList.replace('dark:hover:text-gray-300', 'border-blue-600');
+            tabExplorer.classList.add('dark:border-blue-400');
+            
+            tabGrid.classList.replace('text-blue-600', 'text-gray-500');
+            tabGrid.classList.replace('dark:text-blue-400', 'dark:text-gray-400');
+            tabGrid.classList.remove('border-b-2', 'border-blue-600', 'dark:border-blue-400');
+            tabGrid.classList.add('hover:text-gray-700', 'dark:hover:text-gray-300');
+        });
+
+        tabGrid.addEventListener('click', () => {
+            viewGrid.classList.remove('hidden');
+            viewExplorer.classList.add('hidden');
+            tabGrid.classList.replace('text-gray-500', 'text-blue-600');
+            tabGrid.classList.replace('dark:text-gray-400', 'dark:text-blue-400');
+            tabGrid.classList.replace('hover:text-gray-700', 'border-b-2');
+            tabGrid.classList.replace('dark:hover:text-gray-300', 'border-blue-600');
+            tabGrid.classList.add('dark:border-blue-400');
+            
+            tabExplorer.classList.replace('text-blue-600', 'text-gray-500');
+            tabExplorer.classList.replace('dark:text-blue-400', 'dark:text-gray-400');
+            tabExplorer.classList.remove('border-b-2', 'border-blue-600', 'dark:border-blue-400');
+            tabExplorer.classList.add('hover:text-gray-700', 'dark:hover:text-gray-300');
+            
+            if(document.getElementById('grid-container').children.length === 0) generateGrid();
+        });
+
+        function parseChordString(str) {
+            const match = str.trim().match(/^([CDEFGAB][#b]?)(.*)$/i);
+            if (!match) return null;
+
+            let rootStr = match[1].toUpperCase();
+            let typeStr = match[2].trim().toLowerCase();
+
+            const noteMap = {
+                "C":0, "C#":1, "DB":1, "D":2, "D#":3, "EB":3, 
+                "E":4, "F":5, "F#":6, "GB":6, "G":7, "G#":8, 
+                "AB":8, "A":9, "A#":10, "BB":10, "B":11
+            };
+            let rootNote = noteMap[rootStr];
+
+            const typeMap = {
+                "": "major", "m": "minor", "min": "minor", 
+                "7": "7", "m7": "m7", "min7": "m7", "maj7": "maj7", "M7": "maj7", 
+                "9": "9", "m9": "m9", "maj9": "maj9", 
+                "sus4": "sus4", "sus": "sus4", "dim": "dim"
+            };
+            let chordType = typeMap[typeStr];
+            
+            if (rootNote === undefined || !chordType) return null;
+
+            return { rootNote, chordType, original: str.trim() };
+        }
+
+        function generateGrid() {
+            const inputStr = document.getElementById('chord-sequence').value;
+            const container = document.getElementById('grid-container');
+            const tuningKey = document.getElementById('tuning-select').value;
+            
+            container.innerHTML = ''; 
+            gridState = []; 
+            
+            if (!inputStr.trim()) return;
+
+            const sliderSize = document.getElementById('grid-size-slider').value;
+            const renderType = document.getElementById('grid-render-type').value;
+            const isPiano = tuningKey === 'piano';
+            
+            let minSize = sliderSize;
+            if (renderType === 'staff') minSize = sliderSize * 1.2; 
+            else if (isPiano) minSize = sliderSize * 1.5; 
+            
+            container.style.gridTemplateColumns = `repeat(auto-fill, minmax(${minSize}px, 1fr))`;
+
+            const chords = inputStr.split(',').map(s => parseChordString(s));
+
+            chords.forEach((chordData, index) => {
+                if (!chordData) return; 
+                
+                const voicings = generateVoicings(tuningKey, chordData.rootNote, chordData.chordType);
+                if (voicings.length === 0) return;
+
+                gridState[index] = {
+                    voicings: voicings,
+                    currentIndex: 0,
+                    rootNote: chordData.rootNote,
+                    tuningKey: tuningKey
+                };
+
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 pb-1 flex flex-col items-center shadow-sm transition-all duration-300 hover:shadow-md relative";
+                
+                let cWidth = 400; let cHeight = 350;
+                if (renderType === 'staff') { cWidth = 450; cHeight = 300; } 
+                else if (isPiano) { cWidth = 600; cHeight = 220; }
+                
+                card.innerHTML = `
+                    <span id="grid-counter-${index}" class="absolute top-2 left-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 bg-white/80 dark:bg-gray-800/80 px-1 rounded z-0 pointer-events-none transition-colors"></span>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-0 leading-none mt-1 z-10">${chordData.original}</h3>
+                    <div class="relative w-full mt-1 z-10">
+                        <button onclick="navigateGridChord(${index}, -1)" id="grid-prev-${index}" class="absolute -left-2 top-1/2 -translate-y-1/2 w-6 h-8 rounded bg-white/90 dark:bg-gray-700/90 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 shadow-sm font-bold transition flex items-center justify-center z-10">&lt;</button>
+                        <canvas id="grid-canvas-${index}" class="w-full h-auto" width="${cWidth}" height="${cHeight}"></canvas>
+                        <button onclick="navigateGridChord(${index}, 1)" id="grid-next-${index}" class="absolute -right-2 top-1/2 -translate-y-1/2 w-6 h-8 rounded bg-white/90 dark:bg-gray-700/90 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 shadow-sm font-bold transition flex items-center justify-center z-10">&gt;</button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+                renderGridCard(index);
+            });
+        }
+
+        window.navigateGridChord = function(index, direction) {
+            const state = gridState[index];
+            if (!state) return;
+            state.currentIndex += direction;
+            if (state.currentIndex < 0) state.currentIndex = 0;
+            if (state.currentIndex >= state.voicings.length) state.currentIndex = state.voicings.length - 1;
+            renderGridCard(index);
+        }
+
+        function renderGridCard(index) {
+            const state = gridState[index];
+            const canvas = document.getElementById(`grid-canvas-${index}`);
+            const displayMode = document.getElementById('grid-display-mode-select').value;
+            const renderType = document.getElementById('grid-render-type').value;
+            if (!state || !canvas) return;
+
+            if (renderType === 'staff') {
+                drawStaff(state.voicings[state.currentIndex], canvas);
+            } else {
+                if (state.tuningKey === 'piano') drawPiano(state.voicings[state.currentIndex], canvas, state.rootNote, displayMode);
+                else drawChord(state.voicings[state.currentIndex], state.tuningKey, canvas, state.rootNote, displayMode);
+            }
+
+            document.getElementById(`grid-counter-${index}`).innerText = `${state.currentIndex + 1}/${state.voicings.length}`;
+            
+            const prevBtn = document.getElementById(`grid-prev-${index}`);
+            const nextBtn = document.getElementById(`grid-next-${index}`);
+            
+            prevBtn.disabled = state.currentIndex === 0;
+            prevBtn.style.opacity = state.currentIndex === 0 ? "0.3" : "1";
+            prevBtn.style.cursor = state.currentIndex === 0 ? "default" : "pointer";
+            
+            nextBtn.disabled = state.currentIndex === state.voicings.length - 1;
+            nextBtn.style.opacity = state.currentIndex === state.voicings.length - 1 ? "0.3" : "1";
+            nextBtn.style.cursor = state.currentIndex === state.voicings.length - 1 ? "default" : "pointer";
+        }
+
+        document.getElementById('btn-generate-grid').addEventListener('click', generateGrid);
+
+        document.getElementById('grid-size-slider').addEventListener('input', (e) => {
+            const size = e.target.value;
+            const tuningKey = document.getElementById('tuning-select').value;
+            const renderType = document.getElementById('grid-render-type').value;
+            
+            let minSize = size;
+            if (renderType === 'staff') minSize = size * 1.2;
+            else if (tuningKey === 'piano') minSize = size * 1.5;
+            document.getElementById('grid-container').style.gridTemplateColumns = `repeat(auto-fill, minmax(${minSize}px, 1fr))`;
+        });
+        
+        document.getElementById('grid-display-mode-select').addEventListener('change', () => {
+            for(let i=0; i<gridState.length; i++) if(gridState[i]) renderGridCard(i);
+        });
+        
+        document.getElementById('grid-render-type').addEventListener('change', generateGrid);
+
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('tuning')) {
+                const tuningSelect = document.getElementById('tuning-select');
+                if (tuningSelect.querySelector(`option[value="${params.get('tuning')}"]`)) tuningSelect.value = params.get('tuning');
+            }
+            if (params.has('display')) {
+                const dMode = params.get('display');
+                if(document.getElementById('display-mode-select').querySelector(`option[value="${dMode}"]`)) {
+                    document.getElementById('display-mode-select').value = dMode;
+                    document.getElementById('grid-display-mode-select').value = dMode;
+                }
+            }
+            if (params.has('chords')) document.getElementById('chord-sequence').value = decodeURIComponent(params.get('chords'));
+
+            if (params.get('embed') === 'true') {
+                document.getElementById('main-title').classList.add('hidden');
+                document.getElementById('tabs-container').classList.add('hidden');
+                document.getElementById('theme-toggle').classList.add('hidden'); // Optionnel, cacher le switch en embed
+                if (params.has('chords')) document.getElementById('grid-controls').classList.add('hidden');
+                document.getElementById('tab-grid').click();
+            } else if (params.get('view') === 'grid') {
+                document.getElementById('tab-grid').click();
+            } else {
+                updateUI();
+            }
+        };
+    </script>
+</body>
+</html>
