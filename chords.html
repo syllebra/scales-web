@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Générateur Algorithmique d'Accords</title>
-    <!-- Configuration de Tailwind pour le mode sombre (basé sur une classe CSS) -->
+    <!-- Configuration de Tailwind pour le mode sombre -->
     <script>
         tailwind = {
             config: {
@@ -30,7 +30,6 @@
         
         <!-- Bouton Thème Sombre / Clair -->
         <button id="theme-toggle" class="absolute top-6 right-6 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 outline-none transition">
-            <!-- Icône Soleil (claire) / Lune (sombre) gérée en JS -->
             <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
@@ -46,7 +45,6 @@
 
         <!-- VUE EXPLORATEUR -->
         <div id="view-explorer">
-            <!-- Contrôles -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instrument / Accordage</label>
@@ -100,19 +98,16 @@
                 </div>
             </div>
 
-            <!-- Informations sur l'accord -->
             <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4 rounded-lg mb-6 text-center">
                 <h2 id="chord-name-display" class="text-xl font-bold text-gray-800 dark:text-gray-100">C Majeur</h2>
                 <p id="chord-notes-display" class="text-sm text-gray-500 dark:text-gray-300 mt-1">Notes : C, E, G</p>
             </div>
 
             <div class="flex flex-col items-center">
-                <!-- Conteneur flex pour afficher Manche ET Partition côte à côte -->
                 <div class="flex flex-wrap justify-center gap-6 w-full">
                     <div class="relative bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                         <canvas id="fretboard" width="400" height="350"></canvas>
                     </div>
-                    
                     <div class="relative bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
                         <canvas id="staff-canvas" width="300" height="350"></canvas>
                     </div>
@@ -130,9 +125,9 @@
         <!-- VUE GRILLE -->
         <div id="view-grid" class="hidden">
             <div id="grid-controls" class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Saisissez une suite d'accords (séparés par des virgules)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Saisissez une suite d'accords (supporte les slash chords ex: D/F#)</label>
                 <div class="flex flex-col md:flex-row gap-2">
-                    <input type="text" id="chord-sequence" placeholder="Ex: C, G, Am, F, Dm7, G7" class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500" value="C, G, Am, F">
+                    <input type="text" id="chord-sequence" placeholder="Ex: C, G/B, Am, Am/G, F, D/F#, G" class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500" value="C, G/B, Am, Am/G, F, D/F#, G">
                     <button id="btn-generate-grid" class="px-4 py-2 bg-gray-800 dark:bg-gray-200 hover:bg-gray-900 dark:hover:bg-gray-300 text-white dark:text-gray-900 rounded-lg font-medium transition">Générer</button>
                 </div>
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mt-3 gap-3">
@@ -163,7 +158,6 @@
                 </div>
             </div>
             
-            <!-- Conteneur de la grille -->
             <div id="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
                 <!-- Les accords de la grille seront injectés ici -->
             </div>
@@ -180,7 +174,7 @@
                     isDarkMode = true;
                     document.documentElement.classList.add('dark');
                 }
-            } catch(e) { } // Ignore iframe sandbox errors for localStorage
+            } catch(e) { } 
             updateThemeIcon();
         }
 
@@ -195,7 +189,6 @@
             }
             updateThemeIcon();
             
-            // Rafraîchir les dessins Canvas avec les nouvelles couleurs
             updateUI();
             if (!document.getElementById('view-grid').classList.contains('hidden') && gridState.length > 0) {
                 for(let i=0; i<gridState.length; i++) {
@@ -207,30 +200,28 @@
         function updateThemeIcon() {
             const icon = document.getElementById('theme-icon');
             if (isDarkMode) {
-                // Icône Soleil
                 icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />';
             } else {
-                // Icône Lune
                 icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />';
             }
         }
 
         document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-        initTheme(); // Initialisation au chargement
+        initTheme(); 
 
         // --- PALETTES DE COULEURS POUR CANVAS ---
         function getCanvasColors() {
             return isDarkMode ? {
-                bg: '#1f2937',          // bg-gray-800
-                fret: '#4b5563',        // border-gray-600
-                fretNum: '#9ca3af',     // text-gray-400
-                nut: '#d1d5db',         // text-gray-300
-                string: '#4b5563',      // border-gray-600
-                stringText: '#9ca3af',  // text-gray-400
+                bg: '#1f2937',          
+                fret: '#4b5563',        
+                fretNum: '#9ca3af',     
+                nut: '#d1d5db',         
+                string: '#4b5563',      
+                stringText: '#9ca3af',  
                 barre: 'rgba(156, 163, 175, 0.3)', 
-                marker: '#f3f4f6',      // text-gray-100
-                markerText: '#1f2937',  // text-gray-800
-                noteText: '#d1d5db',    // text-gray-300
+                marker: '#f3f4f6',      
+                markerText: '#1f2937',  
+                noteText: '#d1d5db',    
                 pianoWhite: '#374151',
                 pianoStroke: '#1f2937',
                 pianoBlack: '#111827',
@@ -293,35 +284,58 @@
             return getNoteName(noteIndex);
         }
 
-        function generatePianoVoicings(rootNote, chordType) {
+        // Modifié : Génération du piano gère la note de basse
+        function generatePianoVoicings(rootNote, chordType, bassNote = undefined) {
             let voicings = [];
             let baseMidi = 60 + rootNote;
             let formula = CHORD_FORMULAS[chordType];
+            let targetNotes = formula.map(interval => baseMidi + interval);
             
-            let v1 = formula.map(interval => baseMidi + interval);
-            voicings.push({ isPiano: true, notes: v1, actualNotes: v1.map(n => n % 12), absoluteNotes: v1, score: 0 });
-
-            if (v1.length >= 3) {
-                let v2 = [...v1]; v2.push(v2.shift() + 12);
-                voicings.push({ isPiano: true, notes: v2, actualNotes: v2.map(n => n % 12), absoluteNotes: v2, score: 1 });
+            // Si c'est un Slash Chord, on force la basse
+            if (bassNote !== undefined) {
+                let actualNotes = targetNotes.map(n => n % 12);
+                if (!actualNotes.includes(bassNote)) {
+                    // Basse étrangère à l'accord (ex: Am/F)
+                    let bMidi = 48 + bassNote; 
+                    targetNotes.unshift(bMidi);
+                } else {
+                    // Renversement naturel (ex: C/G)
+                    while(targetNotes[0] % 12 !== bassNote) {
+                        targetNotes.push(targetNotes.shift() + 12);
+                    }
+                }
+                voicings.push({ isPiano: true, notes: targetNotes, actualNotes: targetNotes.map(n=>n%12), absoluteNotes: targetNotes, score: 0 });
+                return voicings; // On ne renvoie qu'une seule position de basse spécifique pour le piano
             }
 
-            if (v1.length >= 3) {
+            // Génération normale (Fondamentale, 1er renversement, 2eme renversement)
+            voicings.push({ isPiano: true, notes: targetNotes, actualNotes: targetNotes.map(n => n % 12), absoluteNotes: targetNotes, score: 0 });
+            if (targetNotes.length >= 3) {
+                let v2 = [...targetNotes]; v2.push(v2.shift() + 12);
+                voicings.push({ isPiano: true, notes: v2, actualNotes: v2.map(n => n % 12), absoluteNotes: v2, score: 1 });
+            }
+            if (targetNotes.length >= 3) {
                 let v3 = [...voicings[1].notes]; v3.push(v3.shift() + 12);
                 voicings.push({ isPiano: true, notes: v3, actualNotes: v3.map(n => n % 12), absoluteNotes: v3, score: 2 });
             }
             return voicings;
         }
 
-        function generateVoicings(tuningKey, rootNote, chordType) {
-            if (tuningKey === 'piano') return generatePianoVoicings(rootNote, chordType);
+        // Modifié : Accepte l'argument bassNote
+        function generateVoicings(tuningKey, rootNote, chordType, bassNote = undefined) {
+            if (tuningKey === 'piano') return generatePianoVoicings(rootNote, chordType, bassNote);
 
             const tuning = TUNINGS[tuningKey];
             const targetNotes = getChordNotes(rootNote, chordType);
+            
+            // On s'assure que la note de basse étrangère est bien demandée à l'algorithme
+            if (bassNote !== undefined && !targetNotes.includes(bassNote)) {
+                targetNotes.push(bassNote);
+            }
+
             const numStrings = tuning.length;
             const maxFret = 14; 
             const maxFretSpan = 3;
-
             let voicings = [];
 
             for (let baseFret = 0; baseFret <= maxFret - maxFretSpan; baseFret++) {
@@ -348,7 +362,7 @@
                 }
 
                 for (let voicing of combinations) {
-                    let evaluated = evaluateFingering(voicing, targetNotes, rootNote, tuning);
+                    let evaluated = evaluateFingering(voicing, targetNotes, rootNote, tuning, tuningKey, chordType, bassNote);
                     if (evaluated.valid) {
                         if (!voicings.some(v => v.frets.join(',') === voicing.join(','))) {
                             voicings.push({ frets: voicing, ...evaluated });
@@ -361,7 +375,8 @@
         }
 
         // --- 3. L'ALGORITHME DE FILTRAGE ERGONOMIQUE ET DOIGTÉ ---
-        function evaluateFingering(frets, targetNotes, rootNote, tuning) {
+        // Modifié : Intègre le respect strict de la basse demandée
+        function evaluateFingering(frets, targetNotes, rootNote, tuning, tuningKey, chordType, bassNote) {
             let playedFrets = frets.filter(f => f > -1);
             if (playedFrets.length === 0) return { valid: false };
 
@@ -456,8 +471,48 @@
             score += minFret * 0.5;
             score += span * 1;
             if (barre) score += 2;
-            if (lowestNotePlayed !== rootNote) score += 4;
-            score += frets.filter(f => f === -1).length * 0.5;
+            
+            // --- GESTION STRICTE DE LA BASSE (Slash Chords) ---
+            if (bassNote !== undefined) {
+                // Si la note la plus grave jouée n'est pas la basse demandée, on rejette la position
+                if (lowestNotePlayed !== bassNote) return { valid: false };
+            } else {
+                // S'il n'y a pas de slash chord, on pénalise simplement les renversements non-naturels
+                if (lowestNotePlayed !== rootNote) score += 4;
+            }
+            
+            score += frets.filter(f => f === -1).length * 1.5;
+            score -= frets.filter(f => f === 0).length * 1.0;
+
+            const fretSignature = frets.join(',');
+            const chordId = `${rootNote}_${chordType}`;
+            
+            // On ne force les "Cowboy chords" que si ce n'est PAS un slash chord
+            if (bassNote === undefined) {
+                if (tuningKey === 'guitar_standard') {
+                    const classicShapes = {
+                        "0_major": "-1,3,2,0,1,0",  
+                        "9_major": "-1,0,2,2,2,0",  
+                        "7_major": "3,2,0,0,0,3",   
+                        "4_major": "0,2,2,1,0,0",   
+                        "2_major": "-1,-1,0,2,3,2", 
+                        "9_minor": "-1,0,2,2,1,0",  
+                        "4_minor": "0,2,2,0,0,0",   
+                        "2_minor": "-1,-1,0,2,3,1", 
+                        "5_major": "1,3,3,2,1,1",   
+                        "5_maj7": "-1,-1,3,2,1,0",  
+                        "0_maj7": "-1,3,2,0,0,0"    
+                    };
+                    if (classicShapes[chordId] === fretSignature) score -= 100; 
+                    else if (chordId === "7_major" && fretSignature === "3,2,0,0,3,3") score -= 99;  
+                } else if (tuningKey === 'ukulele_standard') {
+                    const ukeShapes = {
+                        "0_major": "0,0,0,3", "7_major": "0,2,3,2", "5_major": "2,0,1,0", 
+                        "9_minor": "2,0,0,0", "9_major": "2,1,0,0", "4_minor": "0,4,3,2", "2_major": "2,2,2,0"  
+                    };
+                    if (ukeShapes[chordId] === fretSignature) score -= 100; 
+                }
+            }
 
             return { valid: true, score: score.toFixed(1), fingering: fingers, barre: barre, actualNotes, absoluteNotes };
         }
@@ -474,7 +529,6 @@
             const halfSpace = lineSpacing / 2;
             const centerY = canvas.height / 2; 
 
-            // Fond
             ctx.fillStyle = cols.bg;
             ctx.fillRect(padX - 20, 10, width - 2*padX + 40, canvas.height - 20);
 
@@ -635,8 +689,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const padX = canvas.width > 300 ? 50 : 30;
-            const padTop = canvas.height > 300 ? 60 : 45;
-            const padBottom = 40;
+            const padTop = canvas.height > 300 ? 75 : 55;
+            const padBottom = 45;
             const stringSpacing = (canvas.width - 2 * padX) / (numStrings - 1);
             
             let playedFrets = frets.filter(f => f > 0);
@@ -725,18 +779,20 @@
 
                 if (fret === -1) {
                     ctx.strokeStyle = cols.marker; 
-                    ctx.lineWidth = 3; 
+                    ctx.lineWidth = 2.5; 
+                    ctx.lineCap = 'round';
                     ctx.beginPath();
-                    let size = 10; 
-                    let y = padTop - 20;
+                    let size = 7; 
+                    let y = padTop - 24;
                     ctx.moveTo(x - size, y - size); ctx.lineTo(x + size, y + size);
                     ctx.moveTo(x + size, y - size); ctx.lineTo(x - size, y + size);
                     ctx.stroke();
+                    ctx.lineCap = 'butt'; 
                 } else if (fret === 0) {
                     ctx.strokeStyle = cols.marker; 
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2.5;
                     ctx.beginPath();
-                    ctx.arc(x, padTop - 20, 10, 0, Math.PI * 2); 
+                    ctx.arc(x, padTop - 24, 7, 0, Math.PI * 2); 
                     ctx.stroke();
                 } else if (fret >= minFretDisplay) {
                     let y = padTop + (fret - minFretDisplay) * fretSpacing + fretSpacing / 2;
@@ -790,7 +846,8 @@
             const notesNames = targetNotes.map(n => getNoteName(n)).join(' - ');
             document.getElementById('chord-notes-display').innerText = `Notes théoriques : ${notesNames}`;
 
-            currentVariants = generateVoicings(tuningKey, rootNote, chordType);
+            // L'explorateur classique n'utilise pas de basse modifiée
+            currentVariants = generateVoicings(tuningKey, rootNote, chordType, undefined);
             
             if (currentVariants.length === 0) {
                 document.getElementById('variant-counter').innerText = "0 / 0";
@@ -828,25 +885,26 @@
             const rootNote = parseInt(document.getElementById('root-select').value);
             const displayMode = document.getElementById('display-mode-select').value;
             
-            // Rendu principal
             const canvas = document.getElementById('fretboard');
             const isPiano = tuningKey === 'piano';
             canvas.width = isPiano ? 500 : 400;
-            canvas.height = isPiano ? 220 : 350;
+            canvas.height = isPiano ? 350 : 350;
             
             if (isPiano) {
+                canvas.height = 220;
                 drawPiano(variant, canvas, rootNote, displayMode);
             } else {
                 drawChord(variant, tuningKey, canvas, rootNote, displayMode);
             }
 
-            // Rendu Partition Simultané
             const staffCanvas = document.getElementById('staff-canvas');
             drawStaff(variant, staffCanvas);
             
             document.getElementById('variant-counter').innerText = `${currentIndex + 1} / ${currentVariants.length}`;
+            
             let diffTxt = isPiano ? "Renversement" : "Score de difficulté algorithmique";
-            document.getElementById('score-display').innerText = `${diffTxt} : ${variant.score}`;
+            let displayScore = variant.score <= -50 ? "Parfait (Standard)" : variant.score;
+            document.getElementById('score-display').innerText = `${diffTxt} : ${displayScore}`;
 
             document.getElementById('btn-prev').disabled = currentIndex === 0;
             document.getElementById('btn-next').disabled = currentIndex === currentVariants.length - 1;
@@ -909,8 +967,13 @@
             if(document.getElementById('grid-container').children.length === 0) generateGrid();
         });
 
+        // Modifié : Intègre le parsing du Slash Chord
         function parseChordString(str) {
-            const match = str.trim().match(/^([CDEFGAB][#b]?)(.*)$/i);
+            let parts = str.trim().split('/');
+            let mainPart = parts[0].trim();
+            let bassPart = parts.length > 1 ? parts[1].trim() : null;
+
+            const match = mainPart.match(/^([CDEFGAB][#b]?)(.*)$/i);
             if (!match) return null;
 
             let rootStr = match[1].toUpperCase();
@@ -921,6 +984,7 @@
                 "E":4, "F":5, "F#":6, "GB":6, "G":7, "G#":8, 
                 "AB":8, "A":9, "A#":10, "BB":10, "B":11
             };
+            
             let rootNote = noteMap[rootStr];
 
             const typeMap = {
@@ -933,7 +997,16 @@
             
             if (rootNote === undefined || !chordType) return null;
 
-            return { rootNote, chordType, original: str.trim() };
+            // Détection de la note de basse
+            let bassNote = undefined;
+            if (bassPart) {
+                // Remplacement de 'b' par 'B' pour le dictionnaire (ex: Bb -> BB)
+                let cleanBass = bassPart.toUpperCase().replace(/B$/, 'B');
+                bassNote = noteMap[cleanBass];
+                if (bassNote === undefined) return null; // Basse invalide
+            }
+
+            return { rootNote, chordType, bassNote, original: str.trim() };
         }
 
         function generateGrid() {
@@ -961,7 +1034,8 @@
             chords.forEach((chordData, index) => {
                 if (!chordData) return; 
                 
-                const voicings = generateVoicings(tuningKey, chordData.rootNote, chordData.chordType);
+                // Appel avec la basse passée en argument
+                const voicings = generateVoicings(tuningKey, chordData.rootNote, chordData.chordType, chordData.bassNote);
                 if (voicings.length === 0) return;
 
                 gridState[index] = {
@@ -1067,7 +1141,7 @@
             if (params.get('embed') === 'true') {
                 document.getElementById('main-title').classList.add('hidden');
                 document.getElementById('tabs-container').classList.add('hidden');
-                document.getElementById('theme-toggle').classList.add('hidden'); // Optionnel, cacher le switch en embed
+                document.getElementById('theme-toggle').classList.add('hidden'); 
                 if (params.has('chords')) document.getElementById('grid-controls').classList.add('hidden');
                 document.getElementById('tab-grid').click();
             } else if (params.get('view') === 'grid') {
